@@ -46176,5 +46176,42 @@
     "location_verified": true,
     "geocoding_source": "google_maps_live",
     "status": "approved"
+  },
+  {
+    "name": "Artificial Intelligence (AI) and ChatGPT classes | Ai Freedom Institute",
+    "slug": "ai-freedom-institute-chatgpt-classes-maharshi-nagar",
+    "category": "education",
+    "locality": "Maharshi Nagar",
+    "address": "21/168, Kushaba Zanjale Rd, Parsanees Colony Maharshi nagar, Gultekadi, Pune, Maharashtra 411037",
+    "phone": "+91 80072 80721",
+    "whatsapp": "+91 80072 80721",
+    "email": "contact@aifreedom.in",
+    "website": "https://aifreedom.in",
+    "description": "Artificial Intelligence (AI) and ChatGPT training institute in Pune offering practical no-code AI courses, prompt engineering, and business automation.",
+    "logo_url": "https://lh3.googleusercontent.com/grass-cs/AABkmLfqTnACY18JIjI7WQWr-gcNyuJRuQ9T9pGBtlOJgzV2ncNVfLCrlwFR1dvkxRiYwsV4awpzDydGAfe6XgohnwOGGh6zglJ4M3wPQcfmCy7p6lpxSpynsS9f3Hlhx9ipFiO-FNpQoF7xzkE=w408-h272-k-no",
+    "photos": [
+      "https://lh3.googleusercontent.com/grass-cs/AABkmLfqTnACY18JIjI7WQWr-gcNyuJRuQ9T9pGBtlOJgzV2ncNVfLCrlwFR1dvkxRiYwsV4awpzDydGAfe6XgohnwOGGh6zglJ4M3wPQcfmCy7p6lpxSpynsS9f3Hlhx9ipFiO-FNpQoF7xzkE=w408-h272-k-no"
+    ],
+    "latitude": 18.4919742,
+    "longitude": 73.862135,
+    "location_verified": true,
+    "featured": true,
+    "status": "approved",
+    "payment_status": "paid",
+    "rating": 4.8,
+    "reviews_count": 15,
+    "opening_hours": {
+      "mon": "24 hours",
+      "tue": "24 hours",
+      "wed": "24 hours",
+      "thu": "24 hours",
+      "fri": "24 hours",
+      "sat": "24 hours",
+      "sun": "24 hours"
+    },
+    "created_at": "2026-11-05T08:22:51.356Z",
+    "updated_at": "2026-11-05T08:22:51.357Z",
+    "approved_at": "2026-11-05T08:22:51.357Z",
+    "id": "eef514ba-8771-4524-9bc3-ea8019d0efc8"
   }
 ]

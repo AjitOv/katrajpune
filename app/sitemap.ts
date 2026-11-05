@@ -1,8 +1,8 @@
 import { MetadataRoute } from "next"
-import { getLocalBusinesses } from "@/lib/data/businesses"
+import { getAllApprovedBusinesses } from "@/lib/data/businesses"
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const businesses = getLocalBusinesses()
+  const businesses = await getAllApprovedBusinesses()
   const baseUrl = "https://katrajpune.com"
   const now = new Date()
 
@@ -19,6 +19,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: now,
       changeFrequency: "daily",
       priority: 0.95,
+    },
+    {
+      url: `${baseUrl}/free-ai-audit`,
+      lastModified: now,
+      changeFrequency: "daily",
+      priority: 0.9,
     },
     {
       url: `${baseUrl}/add-business`,
@@ -58,7 +64,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.85,
   }))
 
-  // 3. Locality Pages (9 Micro-Localities)
+  // 3. Locality Pages (Micro-Localities)
   const localities = [
     "bharati-vidyapeeth",
     "katraj-kondhwa-road",
@@ -69,6 +75,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "sukhsagar-nagar",
     "santosh-nagar",
     "wonder-city",
+    "dhankawadi",
+    "maharshi-nagar",
+    "gultekadi",
   ]
   const localityUrls: MetadataRoute.Sitemap = localities.map((loc) => ({
     url: `${baseUrl}/locality/${loc}`,
@@ -77,7 +86,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.85,
   }))
 
-  // 4. All 1,441 Individual Business Pages
+  // 4. All 1,444+ Individual Business Pages
   const businessUrls: MetadataRoute.Sitemap = businesses.map((b) => ({
     url: `${baseUrl}/business/${b.slug}`,
     lastModified: now,

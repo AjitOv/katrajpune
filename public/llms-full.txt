@@ -1,6 +1,6 @@
-# KatrajPune — Full Directory Catalog of 1,441 Verified Businesses in Katraj, Pune
+# KatrajPune — Full Directory Catalog of 1444 Verified Businesses in Katraj, Pune
 
-> Comprehensive index of all 1,441 authentic businesses in Katraj, Pune, Maharashtra (PIN 411046). Each entry includes canonical profile URL, category, micro-locality, exact address, verified GPS coordinates, Google star rating, review count, and WhatsApp contact link.
+> Comprehensive index of all 1444 authentic businesses in Katraj, Pune, Maharashtra (PIN 411046). Each entry includes canonical profile URL, category, micro-locality, exact address, verified GPS coordinates, Google star rating, review count, and WhatsApp contact link.
 
 
 ## Category: AUTOMOTIVE (137 listings)
@@ -1650,7 +1650,7 @@
 - **Map Link**: https://www.google.com/maps/search/?api=1&query=18.446057,73.82139
 
 
-## Category: EDUCATION (168 listings)
+## Category: EDUCATION (169 listings)
 
 ### Universal Wisdom School | International School in Pune (Balewadi)
 - **URL**: https://katrajpune.com/business/universal-wisdom-school-international-school-in-pune-balewadi-katraj-chowk
@@ -3667,6 +3667,18 @@
 - **Phone**: +91 97621 24010
 - **Photo**: https://lh3.googleusercontent.com/grass-cs/AABkmLe-7KFrFwqQ2Wt9oalPHgympNcXJCdgVfWzQoAygExGiCXNEiQ4VkdwPSZAA7WS5CrmhYJMUbePqeCZPh9YTY5xovDFmLmPwozo75GSxp4RFmHGP_khcivAwKtEwxnGRWUmJhNnHSGEdhtB=w800-h600-k-no
 - **Map Link**: https://www.google.com/maps/search/?api=1&query=18.453918,73.852761
+
+### Artificial Intelligence (AI) and ChatGPT classes | Ai Freedom Institute
+- **URL**: https://katrajpune.com/business/ai-freedom-institute-chatgpt-classes-maharshi-nagar
+- **Category**: education
+- **Locality**: Maharshi Nagar
+- **Rating**: ★ 4.8 (15 reviews)
+- **Address**: 21/168, Kushaba Zanjale Rd, Parsanees Colony Maharshi nagar, Gultekadi, Pune, Maharashtra 411037
+- **Coordinates**: Lat 18.4919742, Lng 73.862135
+- **WhatsApp**: https://wa.me/918007280721
+- **Phone**: +91 80072 80721
+- **Photo**: https://lh3.googleusercontent.com/grass-cs/AABkmLfqTnACY18JIjI7WQWr-gcNyuJRuQ9T9pGBtlOJgzV2ncNVfLCrlwFR1dvkxRiYwsV4awpzDydGAfe6XgohnwOGGh6zglJ4M3wPQcfmCy7p6lpxSpynsS9f3Hlhx9ipFiO-FNpQoF7xzkE=w408-h272-k-no
+- **Map Link**: https://www.google.com/maps/search/?api=1&query=18.4919742,73.862135
 
 
 ## Category: FITNESS (73 listings)
