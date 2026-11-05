@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next"
 import { Analytics } from "@vercel/analytics/react"
 import DhanTopBar from "@/components/ads/DhanTopBar"
+import FloatingWhatsAppButton from "@/components/support/FloatingWhatsAppButton"
 import "./tailwind.css"
 
 export const viewport: Viewport = {
@@ -170,6 +171,7 @@ export default function RootLayout({
         <div className="flex-1 flex flex-col relative w-full">
           {children}
         </div>
+        <FloatingWhatsAppButton />
         <Analytics />
       </body>
     </html>
