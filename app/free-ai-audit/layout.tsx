@@ -34,3 +34,4 @@ export const metadata: Metadata = {
 export default function FreeAIAuditLayout({ children }: { children: React.ReactNode }) {
   return children
 }
+

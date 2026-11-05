@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Settings, Save, CheckCircle2, MessageCircle, CreditCard, Sparkles, Clock, ShieldCheck } from "lucide-react"
+import { Settings, Save, CheckCircle2, MessageCircle, CreditCard, Sparkles, Clock, ShieldCheck, Globe, RefreshCw } from "lucide-react"
 import { SITE_CONFIG } from "@/lib/config"
 
 interface SettingsFormData {
@@ -27,6 +27,26 @@ export default function AdminSettingsPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [savedSuccess, setSavedSuccess] = useState(false)
+  const [indexNowPushing, setIndexNowPushing] = useState(false)
+  const [indexNowResult, setIndexNowResult] = useState<string | null>(null)
+
+  const handlePushIndexNow = async () => {
+    setIndexNowPushing(true)
+    setIndexNowResult(null)
+    try {
+      const res = await fetch("/api/admin/indexnow", { method: "POST" })
+      const data = await res.json()
+      if (res.ok && data.success) {
+        setIndexNowResult(`✅ Successfully submitted ${data.totalUrls} URLs to IndexNow (Bing & ChatGPT)!`)
+      } else {
+        setIndexNowResult(`⚠️ ${data.error || "Failed to submit to IndexNow"}`)
+      }
+    } catch (err: any) {
+      setIndexNowResult(`❌ ${err.message || "Network error"}`)
+    } finally {
+      setIndexNowPushing(false)
+    }
+  }
 
   useEffect(() => {
     fetch("/api/admin/settings")
@@ -231,6 +251,48 @@ export default function AdminSettingsPage() {
                 className="w-full px-3 py-2 rounded-xl border border-navy/20 focus:outline-none focus:border-orange"
               />
             </div>
+          </div>
+        </div>
+
+        {/* IndexNow Protocol (Bing, ChatGPT & Yahoo Instant Indexing) */}
+        <div className="bg-white rounded-2xl border border-emerald-500/20 p-6 shadow-sm space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-emerald-500/10">
+            <div className="flex items-center gap-2">
+              <Globe className="w-5 h-5 text-emerald-600" />
+              <h2 className="text-sm font-bold text-navy uppercase tracking-wider">
+                IndexNow Protocol (Bing & ChatGPT Search)
+              </h2>
+            </div>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+              Active Key Loaded
+            </span>
+          </div>
+
+          <p className="text-xs text-gray-600 leading-relaxed">
+            IndexNow instantly notifies search engines (Bing, Microsoft Copilot, ChatGPT Search, Yahoo, Yandex, Naver) whenever URLs are added or updated, bypassing slow web crawlers.
+          </p>
+
+          <div className="p-3 bg-gray-50 rounded-xl border border-navy/10 space-y-1 font-mono text-[11px] text-gray-700">
+            <div><span className="text-navy font-bold">API Key:</span> {SITE_CONFIG.indexNow.key}</div>
+            <div><span className="text-navy font-bold">Key Location:</span> <a href={SITE_CONFIG.indexNow.keyLocation} target="_blank" rel="noreferrer" className="text-blue underline">{SITE_CONFIG.indexNow.keyLocation}</a></div>
+          </div>
+
+          {indexNowResult && (
+            <div className="p-3 rounded-xl bg-navy/5 text-xs font-semibold text-navy border border-navy/10">
+              {indexNowResult}
+            </div>
+          )}
+
+          <div className="pt-2">
+            <button
+              type="button"
+              onClick={handlePushIndexNow}
+              disabled={indexNowPushing}
+              className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs px-5 py-2.5 rounded-xl shadow-md transition-all disabled:opacity-50"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${indexNowPushing ? "animate-spin" : ""}`} />
+              <span>{indexNowPushing ? "Submitting All URLs..." : "Submit All 1,470 URLs to IndexNow Now"}</span>
+            </button>
           </div>
         </div>
 

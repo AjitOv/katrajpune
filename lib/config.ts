@@ -44,6 +44,13 @@ export const SITE_CONFIG = {
     dhanDematUrl: "https://invite.dhan.co/?join=AJAL11",
     amazonTag: "ftechindia-21",
   },
+
+  // 5. IndexNow Protocol (Bing, ChatGPT, Yandex, Naver)
+  indexNow: {
+    key: "9d9cdc5943686555d7c1f32bcebc7142",
+    keyLocation: "https://katrajpune.com/9d9cdc5943686555d7c1f32bcebc7142.txt",
+    endpoint: "https://api.indexnow.org/indexnow",
+  },
 } as const
 
 /**

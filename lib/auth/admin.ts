@@ -103,12 +103,13 @@ export async function verifyAdminSession(req?: NextRequest): Promise<{
 export async function logAdminAction(params: {
   actorId: string
   actorEmail: string
-  action: "approve" | "reject" | "update_location" | "create" | "delete" | "update_details"
-  targetType: "business" | "user" | "ad" | "settings"
+  action: "approve" | "reject" | "update_location" | "create" | "delete" | "update_details" | "submit_indexnow"
+  targetType: "business" | "user" | "ad" | "settings" | "seo"
   targetId?: string
   targetSlug?: string
   previousValues?: Record<string, any> | null
   newValues?: Record<string, any> | null
+  details?: Record<string, any> | null
 }) {
   try {
     const supabase = createAdminClient()
@@ -117,7 +118,7 @@ export async function logAdminAction(params: {
         actor_id: params.actorId,
         actor_email: params.actorEmail,
         action: params.action,
-        target_type: params.targetType === "ad" ? "business" : params.targetType,
+        target_type: ["ad", "seo"].includes(params.targetType) ? "settings" : params.targetType,
         target_id: params.targetId || "00000000-0000-0000-0000-000000000000",
         target_slug: params.targetSlug || null,
         previous_values: params.previousValues || null,
