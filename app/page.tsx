@@ -9,6 +9,8 @@ import BusinessCard from "@/components/map/BusinessCard"
 import { Business } from "@/types/business"
 import LocalityFilter from "@/components/search/LocalityFilter"
 import DirectoryGrid from "@/components/directory/DirectoryGrid"
+import DynamicAdBanner from "@/components/ads/DynamicAdBanner"
+import ZotozAuditBanner from "@/components/promo/ZotozAuditBanner"
 
 const KATRAJ_CENTER = [73.8456, 18.4593] as [number, number]
 
@@ -214,6 +216,10 @@ function MapPage() {
                 <span>🗺️</span> Switch to Full Map
               </button>
             </div>
+          </div>
+          <div className="max-w-7xl mx-auto px-4 mb-4 space-y-3">
+            <DynamicAdBanner placement="homepage_promo" />
+            <ZotozAuditBanner variant="compact" />
           </div>
           <DirectoryGrid
             businesses={allBusinesses}
