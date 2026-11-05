@@ -1,7 +1,16 @@
 import fs from "fs"
 import path from "path"
-import { createServerClient } from "@/lib/supabase/server"
+import { createClient } from "@supabase/supabase-js"
 import { Business } from "@/types/business"
+
+function getPublicSupabase() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  if (!url || !key) return null
+  return createClient(url, key, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  })
+}
 
 let cachedBusinesses: Business[] | null = null
 let lastMtime: number = 0
@@ -11,7 +20,8 @@ let lastMtime: number = 0
  */
 export async function getAllApprovedBusinesses(): Promise<Business[]> {
   try {
-    const supabase = createServerClient()
+    const supabase = getPublicSupabase()
+    if (!supabase) return getLocalBusinesses()
     const { data, error } = await supabase
       .from("businesses")
       .select("*")
@@ -90,7 +100,8 @@ export function getLocalBusinesses(): Business[] {
  */
 export async function getBusinessBySlug(slug: string): Promise<Business | null> {
   try {
-    const supabase = createServerClient()
+    const supabase = getPublicSupabase()
+    if (!supabase) throw new Error("No supabase client")
     const { data, error } = await supabase
       .from("businesses")
       .select("*")
@@ -137,7 +148,8 @@ export async function fetchBusinessesInBounds({
   offset?: number
 }): Promise<Business[]> {
   try {
-    const supabase = createServerClient()
+    const supabase = getPublicSupabase()
+    if (!supabase) throw new Error("Supabase public client not configured")
     let query = supabase
       .from("businesses")
       .select("*")
@@ -200,7 +212,8 @@ export async function searchBusinessesList({
   offset?: number
 }): Promise<Business[]> {
   try {
-    const supabase = createServerClient()
+    const supabase = getPublicSupabase()
+    if (!supabase) throw new Error("Supabase public client not configured")
     let dbQuery = supabase.from("businesses").select("*").eq("status", "approved")
 
     if (category && category !== "all") {

@@ -623,6 +623,10 @@ body {
   pointer-events: auto;
 }
 
+.visible {
+  visibility: visible;
+}
+
 .fixed {
   position: fixed;
 }
