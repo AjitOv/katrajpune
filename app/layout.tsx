@@ -3,6 +3,8 @@ import { Analytics } from "@vercel/analytics/react"
 import DhanTopBar from "@/components/ads/DhanTopBar"
 import FloatingWhatsAppButton from "@/components/support/FloatingWhatsAppButton"
 import "./tailwind.css"
+import DiscoveryLinks from "@/components/seo/DiscoveryLinks"
+import { jsonLd } from "@/lib/seo"
 
 export const viewport: Viewport = {
   themeColor: "#FF7A00",
@@ -18,7 +20,7 @@ export const metadata: Metadata = {
     template: "%s | KatrajPune",
   },
   description:
-    "Definitive hyperlocal search, business directory, and interactive map platform for Katraj, Pune. Explore 1,440+ verified restaurants, doctors, shops, schools, and services with WhatsApp contact, photos, and ratings.",
+    "Definitive hyperlocal search, business directory, and interactive map platform for Katraj, Pune. Explore 1,440+ listed restaurants, doctors, shops, schools, and services with WhatsApp contact, photos, and ratings.",
   keywords: [
     "Katraj Pune",
     "Katraj business directory",
@@ -43,7 +45,7 @@ export const metadata: Metadata = {
     address: true,
   },
   openGraph: {
-    title: "KatrajPune — 1,440+ Verified Local Businesses on Map & Directory",
+    title: "KatrajPune — 1,440+ Local Businesses on Map & Directory",
     description:
       "Find groceries, restaurants, healthcare, schools, and essential services in Katraj, Pune on an interactive map and directory grid.",
     type: "website",
@@ -54,7 +56,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "KatrajPune — Katraj Business Directory & Interactive Map",
-    description: "1,440+ verified businesses in Katraj, Pune with WhatsApp contact and ratings.",
+    description: "1,440+ listed businesses in Katraj, Pune with WhatsApp contact and ratings.",
   },
   alternates: {
     canonical: "https://katrajpune.com",
@@ -102,10 +104,6 @@ export default function RootLayout({
         "@id": "https://katrajpune.com/#organization",
         name: "KatrajPune",
         url: "https://katrajpune.com",
-        logo: {
-          "@type": "ImageObject",
-          url: "https://katrajpune.com/icon-512.png",
-        },
         address: {
           "@type": "PostalAddress",
           addressLocality: "Katraj",
@@ -156,7 +154,7 @@ export default function RootLayout({
         <link rel="author" href="/humans.txt" />
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+          dangerouslySetInnerHTML={{ __html: jsonLd(websiteSchema) }}
         />
       </head>
       <body
@@ -171,6 +169,7 @@ export default function RootLayout({
         <div className="flex-1 flex flex-col relative w-full">
           {children}
         </div>
+        <DiscoveryLinks />
         <FloatingWhatsAppButton />
         <Analytics />
       </body>

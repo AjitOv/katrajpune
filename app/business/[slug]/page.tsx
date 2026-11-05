@@ -1,3 +1,4 @@
+import { jsonLd, localitySlug } from "@/lib/seo"
 import { getBusinessBySlug } from "@/lib/data/businesses"
 import { Business } from "@/types/business"
 import { notFound } from "next/navigation"
@@ -16,7 +17,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
     return { title: "Business Not Found — KatrajPune" }
   }
 
-  const title = `${business.name} — KatrajPune`
+  const title = `${business.name} in ${business.locality || "Katraj"}, Pune`
   const description = business.description
     ? `${business.name} — ${business.category.replace("_", " ")} in ${business.locality}, Katraj, Pune. ${business.description}`
     : `Find ${business.name}, a ${business.category.replace("_", " ")} business in ${business.locality}, Katraj, Pune.`
@@ -65,7 +66,7 @@ export default async function BusinessProfilePage({
   const categoryColor = getCategoryColor(business.category)
   const openingHours = (business.opening_hours as Record<string, string> | null) || {}
   const currentDay = new Date()
-    .toLocaleDateString("en-US", { weekday: "long" })
+    .toLocaleDateString("en-US", { weekday: "long", timeZone: "Asia/Kolkata" })
     .toLowerCase() as string
   const isOpenToday = !!openingHours[currentDay] && openingHours[currentDay] !== "closed"
 
@@ -88,13 +89,13 @@ export default async function BusinessProfilePage({
         url: `https://katrajpune.com/business/${business.slug}`,
         telephone: business.phone || business.whatsapp || undefined,
         sameAs: whatsappUrl ? [whatsappUrl] : undefined,
-        priceRange: "₹₹",
+        mainEntityOfPage: `https://katrajpune.com/business/${business.slug}`,
         address: {
           "@type": "PostalAddress",
           streetAddress: business.address || "Katraj",
           addressLocality: business.locality || "Katraj",
           addressRegion: "Maharashtra",
-          postalCode: "411046",
+          postalCode: business.address?.match(/\b4\d{5}\b/)?.[0],
           addressCountry: "IN",
         },
         geo: {
@@ -103,17 +104,7 @@ export default async function BusinessProfilePage({
           longitude: business.longitude,
         },
         hasMap: `https://www.google.com/maps/search/?api=1&query=${business.latitude},${business.longitude}`,
-        ...(business.rating
-          ? {
-              aggregateRating: {
-                "@type": "AggregateRating",
-                ratingValue: business.rating,
-                reviewCount: business.reviews_count || 1,
-                bestRating: 5,
-                worstRating: 1,
-              },
-            }
-          : {}),
+
       },
       {
         "@type": "BreadcrumbList",
@@ -153,7 +144,7 @@ export default async function BusinessProfilePage({
       {/* JSON-LD structured data for SEO, GEO & AEO */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdGraph) }}
+        dangerouslySetInnerHTML={{ __html: jsonLd(jsonLdGraph) }}
       />
 
       {/* Header / hero */}
@@ -188,6 +179,11 @@ export default async function BusinessProfilePage({
       })()}
 
       <div className="max-w-4xl mx-auto pt-6 pb-12 px-4 sm:px-6 lg:px-8">
+        <section className="bg-white border rounded-xl p-4 mb-6 text-sm">
+          <h2 className="font-bold">Find {business.name} in {business.locality || "Katraj"}</h2>
+          <p>{business.name} is listed under {categoryLabel} in {business.locality || "Katraj"}, Pune. {business.address ? `Address: ${business.address}.` : "Contact the business to confirm its address."} Confirm current opening hours and services before visiting.</p>
+          {business.locality && <Link className="underline" href={`/locality/${localitySlug(business.locality)}`}>More businesses in {business.locality}</Link>}
+        </section>
         {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-sm text-navy/50 mb-6 flex-wrap">
           <a href="/" className="hover:text-navy transition-colors">KatrajPune</a>
@@ -365,6 +361,7 @@ export default async function BusinessProfilePage({
                   {business.photos.map((photo: string, i: number) => (
                     <img
                       key={i}
+                      loading="lazy"
                       src={photo}
                       alt={business.name}
                       className="w-full h-32 object-cover rounded-xl"

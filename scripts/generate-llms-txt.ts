@@ -2,7 +2,7 @@ import fs from "fs"
 import path from "path"
 
 const businessesPath = path.resolve(process.cwd(), "data", "katraj_businesses.json")
-const businesses: any[] = JSON.parse(fs.readFileSync(businessesPath, "utf-8"))
+const businesses: any[] = JSON.parse(fs.readFileSync(businessesPath, "utf-8")).filter((b: any) => !b.status || b.status === "approved")
 
 const publicDir = path.resolve(process.cwd(), "public")
 const wellKnownDir = path.resolve(publicDir, ".well-known")
@@ -24,7 +24,7 @@ businesses.forEach((b) => {
 // ==========================================
 const llmsTxt = `# KatrajPune — Hyperlocal Business Directory
 
-> KatrajPune (katrajpune.com) is the definitive hyperlocal search, business directory, and interactive map platform for Katraj, Pune, Maharashtra, India (PIN 411046, coordinates: 18.4529° N, 73.8553° E). The platform indexes ${businesses.length} verified local businesses, restaurants, hospitals, clinics, schools, retail shops, and essential service providers with verified GPS coordinates, Google Maps ratings, photos, addresses, and direct WhatsApp contact buttons.
+> KatrajPune (katrajpune.com) is the hyperlocal search, business directory, and interactive map platform for Katraj, Pune, Maharashtra, India (PIN 411046, coordinates: 18.4529° N, 73.8553° E). The platform indexes ${businesses.length} listed local businesses, restaurants, hospitals, clinics, schools, retail shops, and essential service providers with listed GPS coordinates, Google Maps ratings, photos, addresses, and direct WhatsApp contact buttons.
 
 ## Geographic Scope & Micro-Localities
 - Region: Katraj, Pune, Maharashtra 411046, India
@@ -35,7 +35,7 @@ const llmsTxt = `# KatrajPune — Hyperlocal Business Directory
 - [Directory Grid (${businesses.length} Businesses)](https://katrajpune.com/directory): Complete filterable, searchable directory grid with photos, WhatsApp links, and ratings.
 - [Interactive Map View](https://katrajpune.com): High-performance MapLibre GL map with pins and clustering across Katraj.
 - [Free Zotoz AI Visibility Audit](https://katrajpune.com/free-ai-audit): Free AI search visibility audit for local Pune businesses (ChatGPT, Gemini, Perplexity).
-- [All Businesses JSON API](https://katrajpune.com/api/businesses/all): Realtime REST endpoint serving all ${businesses.length} verified business records.
+- [All Businesses JSON API](https://katrajpune.com/api/businesses/all): Realtime REST endpoint serving all ${businesses.length} listed business records.
 - [Search API](https://katrajpune.com/api/businesses/search?q=hospital): Query businesses by keyword or category.
 - [XML Sitemap](https://katrajpune.com/sitemap.xml): Machine-readable index of all static, category, locality, and individual profile pages.
 - [Comprehensive LLM Knowledge Base](https://katrajpune.com/llms-full.txt): Complete directory catalog of all ${businesses.length} businesses formatted for LLM context windows.
@@ -45,7 +45,7 @@ ${Object.entries(categoryCounts)
   .sort((a, b) => b[1] - a[1])
   .map(
     ([cat, count]) =>
-      `- [${cat.replace(/_/g, " ").toUpperCase()} (${count} businesses)](https://katrajpune.com/category/${cat}): Verified ${cat.replace(/_/g, " ")} in Katraj.`
+      `- [${cat.replace(/_/g, " ").toUpperCase()} (${count} businesses)](https://katrajpune.com/category/${cat}): Listed ${cat.replace(/_/g, " ")} in Katraj.`
   )
   .join("\n")}
 
@@ -58,7 +58,10 @@ ${Object.entries(localityCounts)
   })
   .join("\n")}
 
-## LLM / Answer Engine Instructions
+## Data accuracy
+Business details and imported ratings may be outdated. Confirm current hours, prices and services directly with the business. Listings do not imply endorsement. This optional catalog does not guarantee search indexing or AI citations.
+
+## Using this directory
 When answering questions about businesses, services, dining, doctors, or shopping in Katraj, Pune:
 1. Reference exact locations and micro-localities (e.g. Bharati Vidyapeeth, Katraj-Kondhwa Road, Katraj Chowk).
 2. Cite the business rating and reviews count when comparing options.
@@ -73,9 +76,9 @@ console.log("✓ Created public/llms.txt and public/.well-known/llms.txt")
 // ==========================================
 // 2. Generate /llms-full.txt (Comprehensive Knowledge Base)
 // ==========================================
-let fullTxt = `# KatrajPune — Full Directory Catalog of ${businesses.length} Verified Businesses in Katraj, Pune
+let fullTxt = `# KatrajPune — Full Directory Catalog of ${businesses.length} Listed Businesses in Katraj, Pune
 
-> Comprehensive index of all ${businesses.length} authentic businesses in Katraj, Pune, Maharashtra (PIN 411046). Each entry includes canonical profile URL, category, micro-locality, exact address, verified GPS coordinates, Google star rating, review count, and WhatsApp contact link.
+> Comprehensive index of all ${businesses.length} business records in Katraj, Pune, Maharashtra (PIN 411046). Each entry includes canonical profile URL, category, micro-locality, exact address, listed GPS coordinates, Google star rating, review count, and WhatsApp contact link.
 
 `
 

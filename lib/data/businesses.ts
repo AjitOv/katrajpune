@@ -22,21 +22,15 @@ export async function getAllApprovedBusinesses(): Promise<Business[]> {
   try {
     const supabase = getPublicSupabase()
     if (!supabase) return getLocalBusinesses()
-    const { data, error } = await supabase
-      .from("businesses")
-      .select("*")
-      .eq("status", "approved")
-      .order("name", { ascending: true })
-
-    if (!error && data && data.length > 0) {
-      return data.map((b: any) => ({
-        ...b,
-        rating: b.rating ? Number(b.rating) : null,
-        reviews_count: b.reviews_count ? Number(b.reviews_count) : 0,
-        latitude: Number(b.latitude),
-        longitude: Number(b.longitude),
-      }))
+    const rows: any[] = []
+    for (let offset = 0; ; offset += 1000) {
+      const {data, error} = await supabase.from("businesses").select("*").eq("status","approved").order("id").range(offset, offset + 999)
+      if (error) throw error
+      rows.push(...(data || []))
+      if (!data || data.length < 1000) break
     }
+    return rows.map((b: any) => ({...b, rating:b.rating ? Number(b.rating):null, reviews_count:Number(b.reviews_count || 0), latitude:Number(b.latitude), longitude:Number(b.longitude)}))
+
   } catch (err) {
     console.warn("Supabase fetch failed, falling back to local dataset:", err)
   }
@@ -58,7 +52,7 @@ export function getLocalBusinesses(): Business[] {
       lastMtime = stats.mtimeMs
       const raw = fs.readFileSync(filePath, "utf-8")
       const parsed = JSON.parse(raw)
-      cachedBusinesses = parsed.map((item: any, index: number) => ({
+      cachedBusinesses = parsed.filter((item: any) => !item.status || item.status === "approved").map((item: any, index: number) => ({
         id: item.id || `local-${index + 1}`,
         slug: item.slug,
         name: item.name,
@@ -85,7 +79,7 @@ export function getLocalBusinesses(): Business[] {
         approved_at: new Date().toISOString(),
         approved_by: null,
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        updated_at: item.updated_at || "",
       }))
       return cachedBusinesses!
     }

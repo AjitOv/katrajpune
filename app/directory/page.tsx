@@ -1,3 +1,4 @@
+import { jsonLd } from "@/lib/seo"
 import { Metadata } from "next"
 import Link from "next/link"
 import { getAllApprovedBusinesses } from "@/lib/data/businesses"
@@ -126,7 +127,7 @@ export default async function DirectoryPage() {
       {/* Structured Data for SEO, GEO & AEO */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+        dangerouslySetInnerHTML={{ __html: jsonLd(structuredData) }}
       />
 
       {/* Top Navigation */}
@@ -215,6 +216,7 @@ export default async function DirectoryPage() {
         <ZotozAuditBanner variant="hero" />
       </div>
 
+      <p className="text-center my-5"><Link className="underline" href="/browse">Browse every business profile by page →</Link></p>
       {/* Directory Grid Component */}
       <main>
         <DirectoryGrid businesses={businesses} />

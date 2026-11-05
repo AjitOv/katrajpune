@@ -1,37 +1,32 @@
+import { PAGE_SIZE, pageNumber, pagePath, localitySlug, jsonLd } from "@/lib/seo"
+import Pagination from "@/components/seo/Pagination"
 import { notFound } from "next/navigation"
 import Link from "next/link"
-import { getLocalBusinesses } from "@/lib/data/businesses"
+import { getAllApprovedBusinesses } from "@/lib/data/businesses"
 import { getMarkerEmoji } from "@/lib/markers"
 import DhanDematBanner from "@/components/ads/DhanDematBanner"
 
 export const dynamic = "force-dynamic"
 
-function matchLocality(bLocality: string | null, targetSlug: string): boolean {
-  if (!bLocality) return false
-  const normLoc = bLocality.toLowerCase().replace(/[^a-z0-9]/g, "-")
-  const normTarget = decodeURIComponent(targetSlug).toLowerCase().replace(/[^a-z0-9]/g, "-")
-  return (
-    normLoc.includes(normTarget) ||
-    normTarget.includes(normLoc) ||
-    bLocality.toLowerCase() === decodeURIComponent(targetSlug).toLowerCase()
-  )
-}
+function matchLocality(value: string | null, slug: string) { return !!value && localitySlug(value) === slug }
 
-export async function generateMetadata({ params }: { params: { slug: string } }) {
-  const decoded = decodeURIComponent(params.slug)
-  const businesses = getLocalBusinesses().filter((b) => matchLocality(b.locality, params.slug))
+export async function generateMetadata({ params, searchParams }: { params: { slug: string }; searchParams: { page?: string } }) {
+  const page = pageNumber(searchParams.page)
+  if (!page) notFound()
+  const decoded = (await getAllApprovedBusinesses()).find(b => matchLocality(b.locality, params.slug))?.locality || params.slug
+  const businesses = (await getAllApprovedBusinesses()).filter((b) => matchLocality(b.locality, params.slug))
 
   return {
-    title: `${decoded}, Katraj — Local Businesses — KatrajPune`,
+    title: `${decoded}, Pune — Local Businesses${page > 1 ? ` — Page ${page}` : ""}`,
     description: `Discover ${businesses.length} local businesses in ${decoded}, Katraj, Pune with WhatsApp contact, ratings, and map locations.`,
     openGraph: {
-      title: `${decoded}, Katraj — Local Businesses — KatrajPune`,
-      description: `Find verified businesses in ${decoded}, Katraj, Pune on an interactive map.`,
-      url: `https://katrajpune.com/locality/${params.slug}`,
+      title: `${decoded}, Pune — Local Businesses${page > 1 ? ` — Page ${page}` : ""}`,
+      description: `Find listed businesses in ${decoded}, Katraj, Pune on an interactive map.`,
+      url: `https://katrajpune.com${pagePath(`/locality/${params.slug}`,page)}`,
       siteName: "KatrajPune",
     },
     alternates: {
-      canonical: `https://katrajpune.com/locality/${params.slug}`,
+      canonical: `https://katrajpune.com${pagePath(`/locality/${params.slug}`,page)}`,
     },
     other: {
       "geo.region": "IN-MH",
@@ -43,16 +38,21 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 }
 
 export default async function LocalityPage({
-  params,
+  params, searchParams,
 }: {
-  params: { slug: string }
+  params: { slug: string }; searchParams: { page?: string }
 }) {
-  const decoded = decodeURIComponent(params.slug)
-  const businesses = getLocalBusinesses().filter((b) => matchLocality(b.locality, params.slug))
+  const decoded = (await getAllApprovedBusinesses()).find(b => matchLocality(b.locality, params.slug))?.locality || params.slug
+  const businesses = (await getAllApprovedBusinesses()).filter((b) => matchLocality(b.locality, params.slug))
 
   if (businesses.length === 0) {
     notFound()
   }
+
+  const page = pageNumber(searchParams.page)
+  const total = Math.max(1, Math.ceil(businesses.length / PAGE_SIZE))
+  if (!page || page > total) notFound()
+  const visible = businesses.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   const structuredData = {
     "@context": "https://schema.org",
@@ -60,15 +60,15 @@ export default async function LocalityPage({
       {
         "@type": "CollectionPage",
         "@id": `https://katrajpune.com/locality/${params.slug}#webpage`,
-        url: `https://katrajpune.com/locality/${params.slug}`,
+        url: `https://katrajpune.com${pagePath(`/locality/${params.slug}`,page)}`,
         name: `Local Businesses in ${decoded}, Katraj`,
-        description: `Explore ${businesses.length} verified businesses in ${decoded}, Katraj, Pune.`,
+        description: `Explore ${businesses.length} listed businesses in ${decoded}, Katraj, Pune.`,
         mainEntity: {
           "@type": "ItemList",
-          numberOfItems: businesses.length,
-          itemListElement: businesses.slice(0, 20).map((b, i) => ({
+          numberOfItems: visible.length,
+          itemListElement: visible.map((b, i) => ({
             "@type": "ListItem",
-            position: i + 1,
+            position: (page - 1) * PAGE_SIZE + i + 1,
             name: b.name,
             url: `https://katrajpune.com/business/${b.slug}`,
           })),
@@ -80,7 +80,7 @@ export default async function LocalityPage({
         itemListElement: [
           { "@type": "ListItem", position: 1, name: "Home", item: "https://katrajpune.com" },
           { "@type": "ListItem", position: 2, name: "Directory", item: "https://katrajpune.com/directory" },
-          { "@type": "ListItem", position: 3, name: decoded, item: `https://katrajpune.com/locality/${params.slug}` },
+          { "@type": "ListItem", position: 3, name: decoded, item: `https://katrajpune.com${pagePath(`/locality/${params.slug}`,page)}` },
         ],
       },
     ],
@@ -90,7 +90,7 @@ export default async function LocalityPage({
     <div className="min-h-screen bg-background">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+        dangerouslySetInnerHTML={{ __html: jsonLd(structuredData) }}
       />
       <header className="bg-white border-b border-navy/10 sticky top-0 z-20">
         <div className="max-w-6xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex items-center justify-between">
@@ -107,7 +107,7 @@ export default async function LocalityPage({
               <span>{decoded}, Katraj, Pune</span>
             </h1>
             <p className="text-xs text-gray-500 mt-0.5">
-              {businesses.length} verified businesses found in {decoded}
+              {businesses.length} listed businesses found in {decoded}
             </p>
           </div>
 
@@ -129,10 +129,11 @@ export default async function LocalityPage({
       </header>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <p className="mb-6 text-sm text-gray-600">Browse {decoded} listings and compare addresses, map locations and available contact details. Confirm hours, services and availability directly with each business. Page {page} of {total}.</p>
         {/* Sponsored Dhan Demat Banner */}
         <DhanDematBanner variant="horizontal" className="mb-8" />
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {businesses.map((biz) => {
+          {visible.map((biz) => {
             const photoUrl = biz.logo_url || (biz.photos && biz.photos.length > 0 ? biz.photos[0] : null)
             return (
               <div
@@ -142,6 +143,8 @@ export default async function LocalityPage({
                 <div className="h-44 bg-gray-100 relative overflow-hidden">
                   {photoUrl ? (
                     <img
+                      loading="lazy"
+                      decoding="async"
                       src={photoUrl}
                       alt={biz.name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
@@ -207,6 +210,7 @@ export default async function LocalityPage({
             )
           })}
         </div>
+        <Pagination path={`/locality/${params.slug}`} page={page} total={total} />
       </div>
     </div>
   )

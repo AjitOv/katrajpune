@@ -1,6 +1,8 @@
+import { PAGE_SIZE, pageNumber, pagePath, localitySlug, jsonLd } from "@/lib/seo"
+import Pagination from "@/components/seo/Pagination"
 import { notFound } from "next/navigation"
 import Link from "next/link"
-import { getLocalBusinesses } from "@/lib/data/businesses"
+import { getAllApprovedBusinesses } from "@/lib/data/businesses"
 import { CATEGORY_LABELS } from "@/types/business"
 import { getMarkerEmoji } from "@/lib/markers"
 import DhanDematBanner from "@/components/ads/DhanDematBanner"
@@ -8,26 +10,28 @@ import AmazonBestsellers from "@/components/ads/AmazonBestsellers"
 
 export const dynamic = "force-dynamic"
 
-export async function generateMetadata({ params }: { params: { slug: string } }) {
+export async function generateMetadata({ params, searchParams }: { params: { slug: string }; searchParams: { page?: string } }) {
+  const page = pageNumber(searchParams.page)
+  if (!page) notFound()
   const label = CATEGORY_LABELS[params.slug as keyof typeof CATEGORY_LABELS] || params.slug
-  const all = getLocalBusinesses().filter((b) => b.category === params.slug)
+  const all = (await getAllApprovedBusinesses()).filter((b) => b.category === params.slug)
 
   if (all.length === 0 && !CATEGORY_LABELS[params.slug as keyof typeof CATEGORY_LABELS]) {
     return { title: "Category Not Found — KatrajPune" }
   }
 
   return {
-    title: `${label} in Katraj, Pune — KatrajPune`,
-    description: `Discover the best ${label.toLowerCase()} in Katraj, Pune. Find ${all.length} verified businesses with WhatsApp, ratings, and map locations.`,
+    title: `${label} in Katraj, Pune${page > 1 ? ` — Page ${page}` : ""}`,
+    description: `Discover the best ${label.toLowerCase()} in Katraj, Pune. Find ${all.length} listed businesses with WhatsApp, ratings, and map locations.`,
     openGraph: {
-      title: `${label} in Katraj, Pune — KatrajPune`,
+      title: `${label} in Katraj, Pune${page > 1 ? ` — Page ${page}` : ""}`,
       description: `Find the best ${label.toLowerCase()} businesses in Katraj, Pune on an interactive map.`,
       type: "website",
-      url: `https://katrajpune.com/category/${params.slug}`,
+      url: `https://katrajpune.com${pagePath(`/category/${params.slug}`,page)}`,
       siteName: "KatrajPune",
     },
     alternates: {
-      canonical: `https://katrajpune.com/category/${params.slug}`,
+      canonical: `https://katrajpune.com${pagePath(`/category/${params.slug}`,page)}`,
     },
     other: {
       "geo.region": "IN-MH",
@@ -39,16 +43,21 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 }
 
 export default async function CategoryPage({
-  params,
+  params, searchParams,
 }: {
-  params: { slug: string }
+  params: { slug: string }; searchParams: { page?: string }
 }) {
-  const businesses = getLocalBusinesses().filter((b) => b.category === params.slug)
+  const businesses = (await getAllApprovedBusinesses()).filter((b) => b.category === params.slug)
   const label = CATEGORY_LABELS[params.slug as keyof typeof CATEGORY_LABELS] || params.slug
 
   if (!CATEGORY_LABELS[params.slug as keyof typeof CATEGORY_LABELS] && businesses.length === 0) {
     notFound()
   }
+
+  const page = pageNumber(searchParams.page)
+  const total = Math.max(1, Math.ceil(businesses.length / PAGE_SIZE))
+  if (!page || page > total) notFound()
+  const visible = businesses.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   const structuredData = {
     "@context": "https://schema.org",
@@ -56,15 +65,15 @@ export default async function CategoryPage({
       {
         "@type": "CollectionPage",
         "@id": `https://katrajpune.com/category/${params.slug}#webpage`,
-        url: `https://katrajpune.com/category/${params.slug}`,
+        url: `https://katrajpune.com${pagePath(`/category/${params.slug}`,page)}`,
         name: `${label} in Katraj, Pune`,
-        description: `Verified directory of ${businesses.length} ${label.toLowerCase()} in Katraj, Pune.`,
+        description: `Business directory of ${businesses.length} ${label.toLowerCase()} in Katraj, Pune.`,
         mainEntity: {
           "@type": "ItemList",
-          numberOfItems: businesses.length,
-          itemListElement: businesses.slice(0, 20).map((b, i) => ({
+          numberOfItems: visible.length,
+          itemListElement: visible.map((b, i) => ({
             "@type": "ListItem",
-            position: i + 1,
+            position: (page - 1) * PAGE_SIZE + i + 1,
             name: b.name,
             url: `https://katrajpune.com/business/${b.slug}`,
           })),
@@ -76,7 +85,7 @@ export default async function CategoryPage({
         itemListElement: [
           { "@type": "ListItem", position: 1, name: "Home", item: "https://katrajpune.com" },
           { "@type": "ListItem", position: 2, name: "Directory", item: "https://katrajpune.com/directory" },
-          { "@type": "ListItem", position: 3, name: label, item: `https://katrajpune.com/category/${params.slug}` },
+          { "@type": "ListItem", position: 3, name: label, item: `https://katrajpune.com${pagePath(`/category/${params.slug}`,page)}` },
         ],
       },
     ],
@@ -86,7 +95,7 @@ export default async function CategoryPage({
     <div className="min-h-screen bg-background">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+        dangerouslySetInnerHTML={{ __html: jsonLd(structuredData) }}
       />
       <header className="bg-white border-b border-navy/10 sticky top-0 z-20">
         <div className="max-w-6xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex items-center justify-between">
@@ -103,7 +112,7 @@ export default async function CategoryPage({
               <span>{label} in Katraj, Pune</span>
             </h1>
             <p className="text-xs text-gray-500 mt-0.5">
-              {businesses.length} verified {label.toLowerCase()} businesses found
+              {businesses.length} listed {label.toLowerCase()} businesses found
             </p>
           </div>
 
@@ -125,10 +134,11 @@ export default async function CategoryPage({
       </header>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <p className="mb-6 text-sm text-gray-600">Browse {label.toLowerCase()} listings and compare addresses, map locations and available contact details. Confirm hours, services and availability directly with each business. Page {page} of {total}.</p>
         {/* Sponsored Dhan Demat Banner */}
         <DhanDematBanner variant="horizontal" className="mb-8" />
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {businesses.map((biz) => {
+          {visible.map((biz) => {
             const photoUrl = biz.logo_url || (biz.photos && biz.photos.length > 0 ? biz.photos[0] : null)
             return (
               <div
@@ -138,6 +148,8 @@ export default async function CategoryPage({
                 <div className="h-44 bg-gray-100 relative overflow-hidden">
                   {photoUrl ? (
                     <img
+                      loading="lazy"
+                      decoding="async"
                       src={photoUrl}
                       alt={biz.name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
@@ -203,6 +215,7 @@ export default async function CategoryPage({
             )
           })}
         </div>
+        <Pagination path={`/category/${params.slug}`} page={page} total={total} />
 
         {/* Amazon Deals Section for Shopping Category */}
         {params.slug === "shopping" && (

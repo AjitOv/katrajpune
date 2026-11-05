@@ -1,98 +1,13 @@
 import { MetadataRoute } from "next"
 import { getAllApprovedBusinesses } from "@/lib/data/businesses"
-
+import { CATEGORY_LABELS } from "@/types/business"
+import { SITE_URL, localities, localitySlug } from "@/lib/seo"
+export const revalidate = 3600
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const businesses = await getAllApprovedBusinesses()
-  const baseUrl = "https://katrajpune.com"
-  const now = new Date()
-
-  // 1. Static Pages
-  const staticUrls: MetadataRoute.Sitemap = [
-    {
-      url: baseUrl,
-      lastModified: now,
-      changeFrequency: "daily",
-      priority: 1.0,
-    },
-    {
-      url: `${baseUrl}/directory`,
-      lastModified: now,
-      changeFrequency: "daily",
-      priority: 0.95,
-    },
-    {
-      url: `${baseUrl}/free-ai-audit`,
-      lastModified: now,
-      changeFrequency: "daily",
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/add-business`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/claim`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/deals`,
-      lastModified: now,
-      changeFrequency: "daily",
-      priority: 0.85,
-    },
-  ]
-
-  // 2. Category Pages (8 Categories)
-  const categories = [
-    "restaurants",
-    "healthcare",
-    "shopping",
-    "education",
-    "fitness",
-    "automotive",
-    "home_services",
-    "professional_services",
-  ]
-  const categoryUrls: MetadataRoute.Sitemap = categories.map((cat) => ({
-    url: `${baseUrl}/category/${cat}`,
-    lastModified: now,
-    changeFrequency: "daily",
-    priority: 0.85,
-  }))
-
-  // 3. Locality Pages (Micro-Localities)
-  const localities = [
-    "bharati-vidyapeeth",
-    "katraj-kondhwa-road",
-    "katraj-chowk",
-    "ambegaon-budruk",
-    "rajas-society",
-    "katraj-dairy",
-    "sukhsagar-nagar",
-    "santosh-nagar",
-    "wonder-city",
-    "dhankawadi",
-    "maharshi-nagar",
-    "gultekadi",
-  ]
-  const localityUrls: MetadataRoute.Sitemap = localities.map((loc) => ({
-    url: `${baseUrl}/locality/${loc}`,
-    lastModified: now,
-    changeFrequency: "daily",
-    priority: 0.85,
-  }))
-
-  // 4. All 1,444+ Individual Business Pages
-  const businessUrls: MetadataRoute.Sitemap = businesses.map((b) => ({
-    url: `${baseUrl}/business/${b.slug}`,
-    lastModified: now,
-    changeFrequency: "weekly",
-    priority: 0.75,
-  }))
-
-  return [...staticUrls, ...categoryUrls, ...localityUrls, ...businessUrls]
+ const businesses = await getAllApprovedBusinesses()
+ const paths = ["", "/directory", "/browse", "/about", "/free-ai-audit", "/add-business", "/claim", "/deals",
+ ...Object.keys(CATEGORY_LABELS).filter(cat => businesses.some(b=>b.category===cat)).map(cat=>`/category/${cat}`),
+ ...localities(businesses).map(label=>`/locality/${localitySlug(label)}`),
+ ...businesses.map(b=>`/business/${b.slug}`)]
+ return Array.from(new Set(paths)).map(path=>({url:SITE_URL+path}))
 }
