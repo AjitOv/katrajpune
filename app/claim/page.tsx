@@ -1,14 +1,24 @@
 "use client"
 
 import { useState, useEffect, Suspense } from "react"
-import { useSearchParams } from "next/navigation"
+import { useSearchParams, useRouter } from "next/navigation"
 import Link from "next/link"
-import { ShieldCheck, CheckCircle2, ArrowRight, ExternalLink, Search, Building2, MapPin } from "lucide-react"
+import {
+  ShieldCheck,
+  CheckCircle2,
+  ArrowRight,
+  ExternalLink,
+  Search,
+  Building2,
+  MapPin,
+  Clock,
+  MessageCircle,
+} from "lucide-react"
 import DhanDematBanner from "@/components/ads/DhanDematBanner"
-
-const RAZORPAY_PAYMENT_URL = "https://rzp.io/rzp/g0GBqkap"
+import { SITE_CONFIG, getContextualWhatsAppUrl } from "@/lib/config"
 
 function ClaimListingContent() {
+  const router = useRouter()
   const searchParams = useSearchParams()
   const initialSlug = searchParams.get("slug") || ""
 
@@ -18,7 +28,8 @@ function ClaimListingContent() {
   const [ownerName, setOwnerName] = useState("")
   const [ownerPhone, setOwnerPhone] = useState("")
   const [ownerEmail, setOwnerEmail] = useState("")
-  const [submitted, setSubmitted] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
   // Fetch businesses for search
   useEffect(() => {
@@ -47,11 +58,58 @@ function ClaimListingContent() {
           .slice(0, 8)
       : []
 
-  const handleClaim = (e: React.FormEvent) => {
+  const handleClaim = async (e: React.FormEvent) => {
     e.preventDefault()
-    window.open(RAZORPAY_PAYMENT_URL, "_blank", "noopener,noreferrer")
-    setSubmitted(true)
+    if (!selectedBusiness) return
+
+    setIsSubmitting(true)
+    setErrorMsg(null)
+
+    try {
+      const res = await fetch("/api/payment/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          businessName: selectedBusiness.name,
+          category: selectedBusiness.category || "shopping",
+          locality: selectedBusiness.locality || "Katraj",
+          address: selectedBusiness.address || `${selectedBusiness.name}, Katraj, Pune`,
+          phone: ownerPhone,
+          whatsapp: ownerPhone,
+          email: ownerEmail || null,
+          website: selectedBusiness.website || null,
+          description: `Ownership claim submitted by ${ownerName}. Current status: Pending verification.`,
+          amount: SITE_CONFIG.listing.feeINR,
+        }),
+      })
+
+      const data = await res.json()
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Failed to initiate claim")
+      }
+
+      const { transactionRef, paymentUrl } = data
+
+      if (typeof window !== "undefined") {
+        window.open(paymentUrl, "_blank", "noopener,noreferrer")
+      }
+
+      router.push(
+        `/payment/pending?ref=${encodeURIComponent(transactionRef)}&name=${encodeURIComponent(
+          selectedBusiness.name
+        )}&amount=${encodeURIComponent(SITE_CONFIG.listing.feeDisplay)}`
+      )
+    } catch (err: any) {
+      console.error("Claim submission failed:", err)
+      setErrorMsg(err?.message || "Failed to process claim. Please try again.")
+      setIsSubmitting(false)
+    }
   }
+
+  const supportWhatsAppUrl = getContextualWhatsAppUrl({
+    action: "claim",
+    businessName: selectedBusiness?.name || undefined,
+  })
 
   return (
     <div className="min-h-screen bg-background">
@@ -75,69 +133,68 @@ function ClaimListingContent() {
             </Link>
             <Link
               href="/add-business"
-              className="text-xs font-bold px-3 py-1.5 rounded-lg bg-orange text-white hover:bg-orange/90 transition-colors"
+              className="text-xs font-bold px-3 py-1.5 rounded-lg bg-orange text-white hover:bg-orange/90 transition-colors shadow-sm"
             >
-              + List New Business (₹350)
+              + List New Business ({SITE_CONFIG.listing.feeDisplay})
             </Link>
           </div>
         </div>
       </header>
 
-      {/* Hero Banner */}
-      <section className="bg-gradient-to-br from-navy via-navy to-[#18395B] text-white py-12 px-4 sm:px-6">
+      {/* Hero */}
+      <section className="bg-gradient-to-br from-navy via-[#162D4A] to-blue text-white py-12 px-4 sm:px-6">
         <div className="max-w-3xl mx-auto text-center space-y-3">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-xs font-bold uppercase tracking-wider">
-            <ShieldCheck className="w-3.5 h-3.5" /> Official Owner Verification
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-xs font-bold uppercase tracking-wider">
+            <ShieldCheck className="w-4 h-4" />
+            <span>Official Owner Verification</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
+          <h1 className="text-3xl sm:text-5xl font-black tracking-tight">
             Claim Your Business on <span className="text-orange">KatrajPune</span>
           </h1>
-          <p className="text-sm sm:text-base text-gray-300">
-            Are you the business owner or manager? Claim your verified listing for just <strong>₹350/-</strong> to update phone numbers, WhatsApp, photos, and receive customer leads.
+          <p className="text-sm sm:text-base text-gray-300 max-w-xl mx-auto">
+            Are you the business owner or manager? Claim your verified listing for just {SITE_CONFIG.listing.feeDisplay}/- to update phone numbers, WhatsApp, photos, and receive customer leads.
           </p>
         </div>
       </section>
 
-      {/* Main Container */}
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-10">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
-          {/* Left: Search & Select Business + Claim Form */}
-          <div className="md:col-span-7 space-y-6">
-            <div className="bg-white rounded-2xl shadow-sm border border-navy/10 p-6 sm:p-7">
-              <h2 className="text-base font-bold text-navy mb-4 flex items-center gap-2">
-                <Building2 className="w-5 h-5 text-orange" />
-                Step 1: Select Your Business
-              </h2>
+      {/* Main Section */}
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
+        {/* Service Standard SLA Alert Banner */}
+        <div className="mb-8 p-4 sm:p-5 bg-amber-50 border border-amber-200 rounded-2xl flex items-start gap-3.5 shadow-sm">
+          <div className="w-9 h-9 rounded-full bg-amber-100 flex items-center justify-center shrink-0 mt-0.5">
+            <Clock className="w-5 h-5 text-amber-800" />
+          </div>
+          <div className="space-y-1">
+            <p className="text-xs font-bold text-amber-900 uppercase tracking-wider">
+              Verification &amp; Publishing Timeline
+            </p>
+            <p className="text-sm font-semibold text-amber-950">
+              {SITE_CONFIG.listing.slaNotice}
+            </p>
+          </div>
+        </div>
 
-              {selectedBusiness ? (
-                <div className="p-4 rounded-xl bg-orange/5 border border-orange/20 mb-6 flex items-start justify-between gap-3">
-                  <div className="space-y-1">
-                    <span className="text-[10px] font-bold text-orange uppercase tracking-wider block">
-                      Selected Listing
-                    </span>
-                    <h3 className="font-bold text-navy text-base">{selectedBusiness.name}</h3>
-                    <p className="text-xs text-gray-600 flex items-center gap-1">
-                      <MapPin className="w-3.5 h-3.5 text-orange shrink-0" />
-                      {selectedBusiness.address || selectedBusiness.locality}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      Category: <span className="capitalize font-medium">{selectedBusiness.category}</span>
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => setSelectedBusiness(null)}
-                    className="text-xs font-bold text-navy/60 hover:text-navy underline shrink-0"
-                  >
-                    Change
-                  </button>
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+          {/* Left Form: Find & Claim */}
+          <div className="md:col-span-7">
+            <div className="bg-white rounded-2xl shadow-sm border border-navy/10 p-6 sm:p-8 space-y-6">
+              {errorMsg && (
+                <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-900 text-sm">
+                  {errorMsg}
                 </div>
-              ) : (
-                <div className="space-y-3 mb-6">
-                  <label className="block text-xs font-bold text-navy uppercase tracking-wider">
+              )}
+
+              {/* Step 1: Search & Select */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-sm font-bold text-navy">
+                  <span>📑 Step 1: Select Your Business</span>
+                </div>
+                <div className="relative">
+                  <label className="block text-xs font-bold text-navy uppercase tracking-wider mb-1.5">
                     Search Business Name
                   </label>
                   <div className="relative">
-                    <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-3.5" />
+                    <Search className="w-4 h-4 absolute left-3.5 top-3.5 text-gray-400" />
                     <input
                       type="text"
                       value={searchTerm}
@@ -147,65 +204,64 @@ function ClaimListingContent() {
                     />
                   </div>
 
+                  {/* Autocomplete Dropdown */}
                   {filteredBusinesses.length > 0 && (
-                    <div className="border border-navy/10 rounded-xl divide-y divide-navy/5 max-h-60 overflow-y-auto bg-white shadow-lg">
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-navy/10 rounded-xl shadow-xl z-20 overflow-hidden divide-y divide-navy/5 max-h-60 overflow-y-auto">
                       {filteredBusinesses.map((b) => (
-                        <div
+                        <button
                           key={b.slug}
+                          type="button"
                           onClick={() => {
                             setSelectedBusiness(b)
                             setSearchTerm("")
                           }}
-                          className="p-3 hover:bg-orange/5 cursor-pointer flex items-center justify-between gap-2 transition-colors"
+                          className="w-full text-left p-3 hover:bg-navy/5 transition-colors flex items-center justify-between"
                         >
                           <div>
-                            <div className="text-sm font-bold text-navy">{b.name}</div>
-                            <div className="text-xs text-gray-500">{b.locality}</div>
+                            <p className="font-bold text-navy text-sm">{b.name}</p>
+                            <p className="text-xs text-gray-500">
+                              {b.category} • {b.locality || "Katraj"}
+                            </p>
                           </div>
-                          <span className="text-xs font-bold text-orange shrink-0">Claim →</span>
-                        </div>
+                          <span className="text-xs font-bold text-orange">Select →</span>
+                        </button>
                       ))}
                     </div>
                   )}
+                </div>
 
-                  {searchTerm.trim().length > 1 && filteredBusinesses.length === 0 && (
-                    <div className="p-3 bg-gray-50 rounded-xl text-xs text-gray-500 text-center">
-                      Business not found in existing records?{" "}
-                      <Link href="/add-business" className="text-orange font-bold underline">
-                        Add it as a new business listing here →
-                      </Link>
+                {/* Selected Business Preview */}
+                {selectedBusiness && (
+                  <div className="p-4 rounded-xl bg-orange/5 border border-orange/30 flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-white border border-orange/20 flex items-center justify-center shrink-0">
+                        <Building2 className="w-5 h-5 text-orange" />
+                      </div>
+                      <div>
+                        <p className="font-bold text-navy text-sm">{selectedBusiness.name}</p>
+                        <p className="text-xs text-gray-600 flex items-center gap-1 mt-0.5">
+                          <MapPin className="w-3 h-3 text-orange" />
+                          <span>{selectedBusiness.locality || "Katraj, Pune"}</span>
+                        </p>
+                      </div>
                     </div>
-                  )}
-                </div>
-              )}
-
-              {/* Step 2: Owner Verification Form */}
-              <h2 className="text-base font-bold text-navy mb-4 pt-4 border-t border-navy/10 flex items-center gap-2">
-                <ShieldCheck className="w-5 h-5 text-emerald-600" />
-                Step 2: Owner Contact Details
-              </h2>
-
-              {submitted && (
-                <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-900 text-sm space-y-2">
-                  <div className="font-bold flex items-center gap-2">
-                    <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-                    Razorpay Checkout Launched!
+                    <button
+                      type="button"
+                      onClick={() => setSelectedBusiness(null)}
+                      className="text-xs text-gray-400 hover:text-red-500 font-bold"
+                    >
+                      Change
+                    </button>
                   </div>
-                  <p>
-                    Once payment of ₹350/- is completed, our Katraj team will verify your ownership and give you full manager access.
-                  </p>
-                  <a
-                    href={RAZORPAY_PAYMENT_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-block text-xs font-bold text-emerald-700 underline"
-                  >
-                    Click here to open Razorpay payment window again ↗
-                  </a>
-                </div>
-              )}
+                )}
+              </div>
 
-              <form onSubmit={handleClaim} className="space-y-4">
+              {/* Step 2: Owner Contact Details */}
+              <form onSubmit={handleClaim} className="space-y-4 pt-4 border-t border-navy/10">
+                <div className="flex items-center gap-2 text-sm font-bold text-navy">
+                  <span>🛡️ Step 2: Owner Contact Details</span>
+                </div>
+
                 <div>
                   <label className="block text-xs font-bold text-navy uppercase tracking-wider mb-1.5">
                     Your Full Name (Owner / Manager) *
@@ -252,7 +308,7 @@ function ClaimListingContent() {
                 <div className="p-4 rounded-xl bg-emerald-50/60 border border-emerald-200 space-y-2">
                   <div className="flex items-center justify-between text-sm">
                     <span className="font-semibold text-navy">Ownership Verification &amp; Claim</span>
-                    <span className="font-bold text-navy">₹350.00</span>
+                    <span className="font-bold text-navy">{SITE_CONFIG.listing.feeDisplay}</span>
                   </div>
                   <div className="flex items-center justify-between text-xs text-emerald-800">
                     <span>Lifetime verified badge &amp; lead access</span>
@@ -262,11 +318,17 @@ function ClaimListingContent() {
 
                 <button
                   type="submit"
-                  disabled={!selectedBusiness}
+                  disabled={!selectedBusiness || isSubmitting}
                   className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-extrabold text-sm py-3.5 px-6 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed"
                 >
-                  <span>Pay ₹350 &amp; Claim Ownership via Razorpay</span>
-                  <ArrowRight className="w-4 h-4" />
+                  {isSubmitting ? (
+                    <span>Persisting Details &amp; Opening Razorpay...</span>
+                  ) : (
+                    <>
+                      <span>Pay {SITE_CONFIG.listing.feeDisplay} &amp; Claim Ownership via Razorpay</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
                 </button>
 
                 {!selectedBusiness && (
@@ -303,15 +365,15 @@ function ClaimListingContent() {
                 </li>
               </ul>
 
-              <div className="pt-2 border-t border-navy/5">
+              <div className="pt-2 border-t border-navy/5 space-y-2">
                 <a
-                  href={RAZORPAY_PAYMENT_URL}
+                  href={supportWhatsAppUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full py-2.5 px-3 bg-gray-100 hover:bg-gray-200 text-navy font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-colors"
+                  className="w-full py-2.5 px-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-colors border border-emerald-200"
                 >
-                  <span>Quick Pay ₹350 on Razorpay</span>
-                  <ExternalLink className="w-3.5 h-3.5" />
+                  <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Need Help Claiming? Chat on WhatsApp</span>
                 </a>
               </div>
             </div>
@@ -337,4 +399,3 @@ export default function ClaimListingPage() {
     </Suspense>
   )
 }
-

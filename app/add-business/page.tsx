@@ -1,13 +1,26 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { CheckCircle2, ShieldCheck, Zap, ArrowRight, MessageCircle, MapPin, Star, Building2, ExternalLink } from "lucide-react"
+import {
+  CheckCircle2,
+  ShieldCheck,
+  Zap,
+  ArrowRight,
+  MessageCircle,
+  MapPin,
+  Star,
+  Building2,
+  ExternalLink,
+  Clock,
+  Sparkles,
+} from "lucide-react"
 import DhanDematBanner from "@/components/ads/DhanDematBanner"
-
-const RAZORPAY_PAYMENT_URL = "https://rzp.io/rzp/g0GBqkap"
+import { SITE_CONFIG, getContextualWhatsAppUrl } from "@/lib/config"
 
 export default function AddBusinessListingPage() {
+  const router = useRouter()
   const [formData, setFormData] = useState({
     businessName: "",
     category: "shopping",
@@ -16,20 +29,72 @@ export default function AddBusinessListingPage() {
     phone: "",
     whatsapp: "",
     email: "",
+    website: "",
     description: "",
   })
-  const [submitted, setSubmitted] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }))
   }
 
-  const handleProceedToPayment = (e: React.FormEvent) => {
+  const handleProceedToPayment = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Open Razorpay payment gateway
-    window.open(RAZORPAY_PAYMENT_URL, "_blank", "noopener,noreferrer")
-    setSubmitted(true)
+    setIsSubmitting(true)
+    setErrorMsg(null)
+
+    try {
+      // 1. Persist submission to server before redirecting to payment
+      const res = await fetch("/api/payment/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          businessName: formData.businessName,
+          category: formData.category,
+          locality: formData.locality,
+          address: formData.address,
+          phone: formData.phone || formData.whatsapp,
+          whatsapp: formData.whatsapp,
+          email: formData.email || null,
+          website: formData.website || null,
+          description: formData.description || null,
+          amount: SITE_CONFIG.listing.feeINR,
+        }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Failed to initiate submission")
+      }
+
+      const { transactionRef, paymentUrl } = data
+
+      // 2. Open Razorpay in a new tab
+      if (typeof window !== "undefined") {
+        window.open(paymentUrl, "_blank", "noopener,noreferrer")
+      }
+
+      // 3. Navigate current window to the honest pending confirmation experience
+      router.push(
+        `/payment/pending?ref=${encodeURIComponent(transactionRef)}&name=${encodeURIComponent(
+          formData.businessName
+        )}&amount=${encodeURIComponent(SITE_CONFIG.listing.feeDisplay)}`
+      )
+    } catch (err: any) {
+      console.error("Submission failed:", err)
+      setErrorMsg(err?.message || "Something went wrong. Please try again.")
+      setIsSubmitting(false)
+    }
   }
+
+  const supportWhatsAppUrl = getContextualWhatsAppUrl({
+    action: "add_business",
+    businessName: formData.businessName || undefined,
+  })
 
   return (
     <div className="min-h-screen bg-background">
@@ -81,11 +146,11 @@ export default function AddBusinessListingPage() {
                 One-Time Listing Fee
               </span>
               <div className="flex items-baseline justify-center gap-1 mt-1">
-                <span className="text-4xl font-extrabold text-white">₹350</span>
+                <span className="text-4xl font-extrabold text-white">{SITE_CONFIG.listing.feeDisplay}</span>
                 <span className="text-xs text-orange font-bold uppercase">Only / Lifetime</span>
               </div>
               <span className="text-[11px] text-emerald-400 font-medium block mt-1">
-                ✓ No Monthly Fees • Instant Verification
+                ✓ No Monthly Fees • PostGIS Interactive Map Pin • Direct WhatsApp Leads
               </span>
             </div>
           </div>
@@ -94,77 +159,97 @@ export default function AddBusinessListingPage() {
 
       {/* Main Content: Form + What's Included */}
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
+        {/* Service Standard SLA Alert Banner */}
+        <div className="mb-8 p-4 sm:p-5 bg-amber-50 border border-amber-200 rounded-2xl flex items-start gap-3.5 shadow-sm">
+          <div className="w-9 h-9 rounded-full bg-amber-100 flex items-center justify-center shrink-0 mt-0.5">
+            <Clock className="w-5 h-5 text-amber-800" />
+          </div>
+          <div className="space-y-1">
+            <p className="text-xs font-bold text-amber-900 uppercase tracking-wider">
+              Verification &amp; Publishing Timeline
+            </p>
+            <p className="text-sm font-semibold text-amber-950">
+              {SITE_CONFIG.listing.slaNotice}
+            </p>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Left: What You Get for ₹350 */}
           <div className="lg:col-span-5 space-y-6">
             <div className="bg-white rounded-2xl shadow-sm border border-navy/10 p-6 space-y-5">
-              <h2 className="text-lg font-black text-navy flex items-center gap-2">
-                <Zap className="w-5 h-5 text-orange" />
-                What’s Included for ₹350/-:
+              <h2 className="text-lg font-bold text-navy flex items-center gap-2">
+                <ShieldCheck className="w-5 h-5 text-emerald-600" />
+                What's Included in {SITE_CONFIG.listing.feeDisplay} Listing
               </h2>
 
-              <ul className="space-y-3.5 text-sm text-gray-700">
+              <ul className="space-y-3.5 text-sm text-gray-600">
                 <li className="flex items-start gap-3">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
-                  <div>
-                    <strong className="text-navy">Interactive Map Pin:</strong> Exact GPS coordinates pinned on Katraj MapLibre map.
-                  </div>
+                  <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
+                  <span>
+                    <strong className="text-navy">Interactive Map Pin:</strong> Placed accurately on the Katraj vector map with category icon.
+                  </span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
-                  <div>
-                    <strong className="text-navy">Dedicated Profile Page:</strong> Permanent SEO-indexed URL (`/business/your-name`).
-                  </div>
+                  <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
+                  <span>
+                    <strong className="text-navy">Dedicated SEO Webpage:</strong> Indexed on Google with full schema markup (e.g. <code className="text-xs bg-gray-100 px-1 py-0.5 rounded">/business/your-name</code>).
+                  </span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
-                  <div>
-                    <strong className="text-navy">1-Click WhatsApp Button:</strong> Direct customer enquiries straight to your WhatsApp.
-                  </div>
+                  <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
+                  <span>
+                    <strong className="text-navy">1-Tap WhatsApp Button:</strong> Direct customer enquiries sent straight to your WhatsApp.
+                  </span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
-                  <div>
-                    <strong className="text-navy">Photos &amp; Ratings:</strong> Display your storefront photo, Google star rating &amp; reviews.
-                  </div>
+                  <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
+                  <span>
+                    <strong className="text-navy">Verified Green Badge:</strong> Builds immediate trust with students &amp; families.
+                  </span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
-                  <div>
-                    <strong className="text-navy">AI &amp; Google SEO Indexed:</strong> Included in Google Sitemap, ChatGPT &amp; Perplexity AI feeds.
-                  </div>
-                </li>
-                <li className="flex items-start gap-3">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
-                  <div>
-                    <strong className="text-navy">Verified Merchant Badge:</strong> Green verification tick to build customer trust.
-                  </div>
+                  <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
+                  <span>
+                    <strong className="text-navy">AI Search Visibility:</strong> Indexed into <code className="text-xs bg-gray-100 px-1 py-0.5 rounded">llms.txt</code> for discovery by ChatGPT, Claude &amp; Perplexity.
+                  </span>
                 </li>
               </ul>
 
-              {/* Secure Payment Callout */}
-              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-xs text-blue-900 space-y-1">
-                <div className="font-bold flex items-center gap-1.5">
-                  <ShieldCheck className="w-4 h-4 text-blue-600" />
-                  Secure Instant Payment via Razorpay
-                </div>
-                <p className="text-blue-700">
-                  Supports Google Pay, PhonePe, Paytm, UPI, Debit/Credit Cards &amp; Netbanking.
-                </p>
-              </div>
-
-              {/* Direct Quick Pay Link */}
-              <div className="pt-2">
+              {/* Direct Support WhatsApp Box */}
+              <div className="pt-2 border-t border-navy/10">
+                <p className="text-xs text-gray-500 mb-2">Need help with your business listing?</p>
                 <a
-                  href={RAZORPAY_PAYMENT_URL}
+                  href={supportWhatsAppUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-sm py-3 px-4 rounded-xl flex items-center justify-center gap-2 shadow-md transition-all text-center"
+                  className="inline-flex items-center gap-2 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-3.5 py-2 rounded-xl border border-emerald-200 transition-colors w-full justify-center"
                 >
-                  <span>Pay ₹350 Directly via Razorpay</span>
-                  <ExternalLink className="w-4 h-4" />
+                  <MessageCircle className="w-4 h-4 text-emerald-600" />
+                  <span>Chat with Katraj Support on WhatsApp</span>
                 </a>
               </div>
+            </div>
+
+            {/* Zotoz AI Visibility Audit Promo Card */}
+            <div className="bg-gradient-to-br from-indigo-900 via-navy to-blue-900 text-white rounded-2xl p-6 shadow-sm border border-indigo-700/50 space-y-4">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-indigo-500/30 text-indigo-200 text-[11px] font-bold uppercase tracking-wider">
+                <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                <span>Free Growth Offer</span>
+              </div>
+              <h3 className="text-lg font-black leading-snug">
+                {SITE_CONFIG.zotozAudit.headline}
+              </h3>
+              <p className="text-xs text-indigo-100/90 leading-relaxed">
+                {SITE_CONFIG.zotozAudit.subheadline}
+              </p>
+              <Link
+                href="/free-ai-audit"
+                className="inline-flex items-center gap-2 bg-white hover:bg-amber-300 text-navy font-bold text-xs px-4 py-2.5 rounded-xl shadow transition-all transform hover:scale-105"
+              >
+                <span>Claim Free Zotoz AI Audit</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
             </div>
 
             {/* Sponsored Dhan Ad Card */}
@@ -177,27 +262,13 @@ export default function AddBusinessListingPage() {
               <div className="border-b border-navy/10 pb-4 mb-6">
                 <h2 className="text-xl font-bold text-navy">Enter Business Details</h2>
                 <p className="text-xs text-gray-500 mt-1">
-                  Fill in your information below, then proceed to the ₹350/- secure Razorpay checkout.
+                  Fill in your information below, then proceed to the {SITE_CONFIG.listing.feeDisplay} secure Razorpay checkout.
                 </p>
               </div>
 
-              {submitted && (
-                <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-900 text-sm space-y-2">
-                  <div className="font-bold flex items-center gap-2">
-                    <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-                    Payment Gateway Opened!
-                  </div>
-                  <p>
-                    Once payment of ₹350 is completed via Razorpay, our Katraj team will verify your listing within 2 hours and publish it live!
-                  </p>
-                  <a
-                    href={RAZORPAY_PAYMENT_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-block text-xs font-bold text-emerald-700 underline"
-                  >
-                    Click here if the Razorpay window did not open ↗
-                  </a>
+              {errorMsg && (
+                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-900 text-sm">
+                  {errorMsg}
                 </div>
               )}
 
@@ -212,7 +283,7 @@ export default function AddBusinessListingPage() {
                     name="businessName"
                     value={formData.businessName}
                     onChange={handleChange}
-                    placeholder="e.g. Royal Caterers & Bakers"
+                    placeholder="e.g. Royal Caterers &amp; Bakers"
                     className="w-full px-3.5 py-2.5 rounded-xl border border-navy/20 text-sm focus:outline-none focus:border-orange focus:ring-1 focus:ring-orange"
                   />
                 </div>
@@ -258,6 +329,8 @@ export default function AddBusinessListingPage() {
                       <option value="Wonder City">Wonder City</option>
                       <option value="Rajas Society">Rajas Society</option>
                       <option value="Santosh Nagar">Santosh Nagar</option>
+                      <option value="Dhankawadi">Dhankawadi</option>
+                      <option value="Bibvewadi">Bibvewadi</option>
                     </select>
                   </div>
                 </div>
@@ -308,6 +381,36 @@ export default function AddBusinessListingPage() {
                   </div>
                 </div>
 
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-navy uppercase tracking-wider mb-1.5">
+                      Email Address (Optional)
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      placeholder="business@gmail.com"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-navy/20 text-sm focus:outline-none focus:border-orange focus:ring-1 focus:ring-orange"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-navy uppercase tracking-wider mb-1.5">
+                      Website URL (Optional)
+                    </label>
+                    <input
+                      type="url"
+                      name="website"
+                      value={formData.website}
+                      onChange={handleChange}
+                      placeholder="https://yourwebsite.com"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-navy/20 text-sm focus:outline-none focus:border-orange focus:ring-1 focus:ring-orange"
+                    />
+                  </div>
+                </div>
+
                 <div>
                   <label className="block text-xs font-bold text-navy uppercase tracking-wider mb-1.5">
                     Business Description
@@ -341,14 +444,21 @@ export default function AddBusinessListingPage() {
                 {/* Submit & Pay Button */}
                 <button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-orange to-amber-500 hover:from-orange/90 hover:to-amber-500/90 text-white font-extrabold text-base py-3.5 px-6 rounded-xl shadow-lg transition-all transform hover:scale-[1.01] flex items-center justify-center gap-2"
+                  disabled={isSubmitting}
+                  className="w-full bg-gradient-to-r from-orange to-amber-500 hover:from-orange/90 hover:to-amber-500/90 disabled:opacity-50 text-white font-extrabold text-base py-3.5 px-6 rounded-xl shadow-lg transition-all transform hover:scale-[1.01] flex items-center justify-center gap-2"
                 >
-                  <span>Pay ₹350 &amp; Submit Listing via Razorpay</span>
-                  <ArrowRight className="w-5 h-5" />
+                  {isSubmitting ? (
+                    <span>Persisting Details &amp; Opening Razorpay...</span>
+                  ) : (
+                    <>
+                      <span>Pay ₹350 &amp; Submit Listing via Razorpay</span>
+                      <ArrowRight className="w-5 h-5" />
+                    </>
+                  )}
                 </button>
 
-                <p className="text-[11px] text-center text-gray-400">
-                  🔒 Payments are processed securely via Razorpay. Fast approval within 2-4 hours.
+                <p className="text-[11px] text-center text-gray-500 leading-relaxed">
+                  🔒 Payments are secured via Razorpay. Your submission is saved immediately, and updates undergo review within 48 hours.
                 </p>
               </form>
             </div>
@@ -363,4 +473,3 @@ export default function AddBusinessListingPage() {
     </div>
   )
 }
-
