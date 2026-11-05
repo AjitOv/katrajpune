@@ -1650,7 +1650,7 @@
 - **Map Link**: https://www.google.com/maps/search/?api=1&query=18.446057,73.82139
 
 
-## Category: EDUCATION (167 listings)
+## Category: EDUCATION (168 listings)
 
 ### Universal Wisdom School | International School in Pune (Balewadi)
 - **URL**: https://katrajpune.com/business/universal-wisdom-school-international-school-in-pune-balewadi-katraj-chowk
@@ -3655,6 +3655,18 @@
 - **Phone**: +91 70666 64949
 - **Photo**: https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=800&auto=format&fit=crop&q=80
 - **Map Link**: https://www.google.com/maps/search/?api=1&query=18.45715,73.850183
+
+### Maza Ghar Day Care
+- **URL**: https://katrajpune.com/business/maza-ghar-day-care-bharti-vidyapeeth
+- **Category**: education
+- **Locality**: Bharati Vidyapeeth
+- **Rating**: ★ 5 (59 reviews)
+- **Address**: Fl E-3 Shreeram sahaniwas society, Bhartividyapeeth, Khashaba Jadhav Path, Katraj, Pune, Maharashtra 411046
+- **Coordinates**: Lat 18.453918, Lng 73.852761
+- **WhatsApp**: https://wa.me/919762124010
+- **Phone**: +91 97621 24010
+- **Photo**: https://lh3.googleusercontent.com/grass-cs/AABkmLe-7KFrFwqQ2Wt9oalPHgympNcXJCdgVfWzQoAygExGiCXNEiQ4VkdwPSZAA7WS5CrmhYJMUbePqeCZPh9YTY5xovDFmLmPwozo75GSxp4RFmHGP_khcivAwKtEwxnGRWUmJhNnHSGEdhtB=w800-h600-k-no
+- **Map Link**: https://www.google.com/maps/search/?api=1&query=18.453918,73.852761
 
 
 ## Category: FITNESS (73 listings)
@@ -7251,7 +7263,7 @@
 - **Map Link**: https://www.google.com/maps/search/?api=1&query=18.450875,73.871463
 
 
-## Category: HOME SERVICES (114 listings)
+## Category: HOME SERVICES (115 listings)
 
 ### Swara Beauty Salon & academy – Luxury Hair, Skin & Makeup Studio in Pune
 - **URL**: https://katrajpune.com/business/swara-beauty-salon-academy-luxury-hair-skin-makeup-studio-in-pune-katraj-chowk
@@ -8620,6 +8632,18 @@
 - **Phone**: +91 76208 19908
 - **Photo**: https://lh3.googleusercontent.com/grass-cs/AABkmLdNMWPSaj0BqHxIOqlspmE7F6991mruZAlXjlCeSm3-5WNfWoSrjQgcODvbZgnjQsMf65rVSelO8zJMBKVfMsT7oqQM31nlT2an-8Cu-rqk9Stc7q8bRQsVsGkDL0x_VAuEf-qIOw=w114-h86-k-no
 - **Map Link**: https://www.google.com/maps/search/?api=1&query=18.449477,73.854079
+
+### SACHSTAR ENTERPRISES
+- **URL**: https://katrajpune.com/business/sachstar-enterprises-dhankawadi
+- **Category**: home_services
+- **Locality**: Dhankawadi
+- **Rating**: ★ 5 (62 reviews)
+- **Address**: Chavan nagar, Dhankawadi, Pune, Maharashtra 411043
+- **Coordinates**: Lat 18.470816, Lng 73.855024
+- **WhatsApp**: https://wa.me/917385524449
+- **Phone**: +91 73855 24449
+- **Photo**: https://lh3.googleusercontent.com/grass-cs/AABkmLdGr7vM3YJlb2iFjkVauKOG1dpPQp9HgVhtJmH8ovKTJSeGeZPBSH8MeP28HLnHCsOnK3MeDGlBylFkNFe8wg_z5jQhm0RdOmYs_G6eBX586WjxtnWk2F-cX4PtZwaAdNtkeVxhCOwUnyld=w800-h600-k-no
+- **Map Link**: https://www.google.com/maps/search/?api=1&query=18.470816,73.855024
 
 
 ## Category: PROFESSIONAL SERVICES (161 listings)
