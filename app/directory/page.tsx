@@ -1,6 +1,6 @@
 import { Metadata } from "next"
 import Link from "next/link"
-import { getLocalBusinesses } from "@/lib/data/businesses"
+import { getAllApprovedBusinesses } from "@/lib/data/businesses"
 import DirectoryGrid from "@/components/directory/DirectoryGrid"
 import DhanDematBanner from "@/components/ads/DhanDematBanner"
 import AmazonBestsellers from "@/components/ads/AmazonBestsellers"
@@ -37,8 +37,8 @@ export const metadata: Metadata = {
   },
 }
 
-export default function DirectoryPage() {
-  const businesses = getLocalBusinesses()
+export default async function DirectoryPage() {
+  const businesses = await getAllApprovedBusinesses()
 
   // AEO FAQ Schema & CollectionPage ItemList Schema
   const structuredData = {

@@ -7,6 +7,34 @@ let cachedBusinesses: Business[] | null = null
 let lastMtime: number = 0
 
 /**
+ * Load all approved businesses (Supabase first, fallback to local dataset)
+ */
+export async function getAllApprovedBusinesses(): Promise<Business[]> {
+  try {
+    const supabase = createServerClient()
+    const { data, error } = await supabase
+      .from("businesses")
+      .select("*")
+      .eq("status", "approved")
+      .order("name", { ascending: true })
+
+    if (!error && data && data.length > 0) {
+      return data.map((b: any) => ({
+        ...b,
+        rating: b.rating ? Number(b.rating) : null,
+        reviews_count: b.reviews_count ? Number(b.reviews_count) : 0,
+        latitude: Number(b.latitude),
+        longitude: Number(b.longitude),
+      }))
+    }
+  } catch (err) {
+    console.warn("Supabase fetch failed, falling back to local dataset:", err)
+  }
+
+  return getLocalBusinesses()
+}
+
+/**
  * Load local businesses dataset with automatic mtime cache invalidation
  */
 export function getLocalBusinesses(): Business[] {

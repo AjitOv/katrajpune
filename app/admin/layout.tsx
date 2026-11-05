@@ -25,9 +25,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     supabase.auth.getUser().then(({ data }) => {
       if (data?.user) {
         setUserEmail(data.user.email || "Admin")
+      } else if (pathname !== "/admin/login") {
+        router.push("/admin/login")
       }
     })
-  }, [supabase])
+  }, [supabase, pathname, router])
 
   // Don't render admin chrome on the login page itself
   if (pathname === "/admin/login") {

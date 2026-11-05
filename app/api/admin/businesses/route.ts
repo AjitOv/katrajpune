@@ -13,23 +13,33 @@ const businessSchema = z.object({
   name: z.string().min(2, "Name is required"),
   slug: z.string().min(2, "Slug is required"),
   category: z.string().min(2, "Category is required"),
-  locality: z.string().optional().nullable(),
-  address: z.string().optional().nullable(),
-  phone: z.string().optional().nullable(),
-  whatsapp: z.string().optional().nullable(),
-  email: z.string().email().optional().nullable().or(z.literal("")),
-  website: z.string().url().optional().nullable().or(z.literal("")),
-  description: z.string().optional().nullable(),
-  logo_url: z.string().url().optional().nullable().or(z.literal("")),
+  locality: z.string().optional().nullable().transform((v) => v?.trim() || "Katraj"),
+  address: z.string().optional().nullable().transform((v) => v?.trim() || null),
+  phone: z.string().optional().nullable().transform((v) => v?.trim() || null),
+  whatsapp: z.string().optional().nullable().transform((v) => v?.trim() || null),
+  email: z.string().optional().nullable().transform((v) => v?.trim() || null),
+  website: z.string().optional().nullable().transform((v) => {
+    if (!v) return null
+    const trimmed = v.trim()
+    if (!trimmed) return null
+    return trimmed.startsWith("http://") || trimmed.startsWith("https://") ? trimmed : `https://${trimmed}`
+  }),
+  description: z.string().optional().nullable().transform((v) => v?.trim() || null),
+  logo_url: z.string().optional().nullable().transform((v) => {
+    if (!v) return null
+    const trimmed = v.trim()
+    if (!trimmed) return null
+    return trimmed.startsWith("http://") || trimmed.startsWith("https://") ? trimmed : `https://${trimmed}`
+  }),
   photos: z.array(z.string()).optional().default([]),
-  latitude: z.number(),
-  longitude: z.number(),
+  latitude: z.union([z.number(), z.string()]).transform((v) => Number(v) || 18.452936),
+  longitude: z.union([z.number(), z.string()]).transform((v) => Number(v) || 73.855301),
   location_verified: z.boolean().default(true),
   featured: z.boolean().default(false),
   status: z.enum(["approved", "pending", "rejected"]).default("approved"),
   payment_status: z.enum(["unpaid", "pending", "paid", "refunded"]).default("unpaid"),
-  rating: z.number().optional().nullable(),
-  reviews_count: z.number().int().optional().default(0),
+  rating: z.union([z.number(), z.string()]).optional().nullable().transform((v) => (v ? Number(v) : null)),
+  reviews_count: z.union([z.number(), z.string()]).optional().default(0).transform((v) => Number(v) || 0),
 })
 
 // ---- GET: All businesses with search & filtering ----
@@ -124,6 +134,14 @@ export async function POST(request: NextRequest) {
       .insert([businessData])
       .select()
       .single()
+
+    if (error) {
+      console.error("Supabase insert error:", error)
+      return NextResponse.json(
+        { error: `Database insert failed: ${error.message}` },
+        { status: 400 }
+      )
+    }
 
     // Also persist to local JSON file
     try {
