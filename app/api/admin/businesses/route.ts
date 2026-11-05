@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createServerClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { verifyAdminSession, logAdminAction } from "@/lib/auth/admin"
 import { getLocalBusinesses } from "@/lib/data/businesses"
 import { z } from "zod"
@@ -44,7 +45,7 @@ const businessSchema = z.object({
 
 // ---- GET: All businesses with search & filtering ----
 export async function GET(request: NextRequest) {
-  const { authorized, user, errorResponse } = await verifyAdminSession()
+  const { authorized, user, errorResponse } = await verifyAdminSession(request)
   if (!authorized || !user) return errorResponse!
 
   const { searchParams } = new URL(request.url)
@@ -54,7 +55,7 @@ export async function GET(request: NextRequest) {
   const locality = searchParams.get("locality")
   const paymentStatus = searchParams.get("payment_status")
 
-  const supabase = createServerClient()
+  const supabase = createAdminClient()
 
   // Fetch from Supabase
   let dbBusinesses: any[] = []
@@ -107,7 +108,7 @@ export async function GET(request: NextRequest) {
 
 // ---- POST: Create new business manually ----
 export async function POST(request: NextRequest) {
-  const { authorized, user, errorResponse } = await verifyAdminSession()
+  const { authorized, user, errorResponse } = await verifyAdminSession(request)
   if (!authorized || !user) return errorResponse!
 
   try {
@@ -128,7 +129,7 @@ export async function POST(request: NextRequest) {
       approved_by: parsed.data.status === "approved" ? user.id : null,
     }
 
-    const supabase = createServerClient()
+    const supabase = createAdminClient()
     const { data, error } = await supabase
       .from("businesses")
       .insert([businessData])
@@ -173,7 +174,7 @@ export async function POST(request: NextRequest) {
 
 // ---- PUT: Edit existing business details ----
 export async function PUT(request: NextRequest) {
-  const { authorized, user, errorResponse } = await verifyAdminSession()
+  const { authorized, user, errorResponse } = await verifyAdminSession(request)
   if (!authorized || !user) return errorResponse!
 
   try {
@@ -199,7 +200,7 @@ export async function PUT(request: NextRequest) {
       updated_at: new Date().toISOString(),
     }
 
-    const supabase = createServerClient()
+    const supabase = createAdminClient()
     let query = supabase.from("businesses").update(updateData)
     if (id) query = query.eq("id", id)
     else if (slug) query = query.eq("slug", slug)
@@ -240,7 +241,7 @@ export async function PUT(request: NextRequest) {
 
 // ---- PATCH: Fast status change (approve / reject) ----
 export async function PATCH(request: NextRequest) {
-  const { authorized, user, errorResponse } = await verifyAdminSession()
+  const { authorized, user, errorResponse } = await verifyAdminSession(request)
   if (!authorized || !user) return errorResponse!
 
   try {
@@ -265,7 +266,7 @@ export async function PATCH(request: NextRequest) {
       updated_at: new Date().toISOString(),
     }
 
-    const supabase = createServerClient()
+    const supabase = createAdminClient()
     let query = supabase.from("businesses").update(updateFields)
     if (id) query = query.eq("id", id)
     else if (slug) query = query.eq("slug", slug)
@@ -304,7 +305,7 @@ export async function PATCH(request: NextRequest) {
 
 // ---- DELETE: Delete business with confirmation ----
 export async function DELETE(request: NextRequest) {
-  const { authorized, user, errorResponse } = await verifyAdminSession()
+  const { authorized, user, errorResponse } = await verifyAdminSession(request)
   if (!authorized || !user) return errorResponse!
 
   try {
@@ -316,7 +317,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "Business ID or slug required" }, { status: 400 })
     }
 
-    const supabase = createServerClient()
+    const supabase = createAdminClient()
     let query = supabase.from("businesses").delete()
     if (id) query = query.eq("id", id)
     else if (slug) query = query.eq("slug", slug)

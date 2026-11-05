@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createServerClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { verifyAdminSession, logAdminAction } from "@/lib/auth/admin"
 import { SITE_CONFIG } from "@/lib/config"
 
 export const dynamic = "force-dynamic"
 
-export async function GET() {
-  const { authorized, user, errorResponse } = await verifyAdminSession()
+export async function GET(request: NextRequest) {
+  const { authorized, user, errorResponse } = await verifyAdminSession(request)
   if (!authorized || !user) return errorResponse!
 
-  const supabase = createServerClient()
+  const supabase = createAdminClient()
   try {
     const { data } = await supabase.from("site_settings").select("*")
     const settingsMap: Record<string, any> = {}
@@ -33,12 +33,12 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  const { authorized, user, errorResponse } = await verifyAdminSession()
+  const { authorized, user, errorResponse } = await verifyAdminSession(request)
   if (!authorized || !user) return errorResponse!
 
   try {
     const body = await request.json()
-    const supabase = createServerClient()
+    const supabase = createAdminClient()
 
     for (const [key, value] of Object.entries(body)) {
       await supabase

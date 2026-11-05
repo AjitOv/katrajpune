@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createServerClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { verifyAdminSession, logAdminAction } from "@/lib/auth/admin"
 import { z } from "zod"
 
@@ -26,11 +26,11 @@ const campaignSchema = z.object({
 })
 
 // GET: All ad campaigns for admin
-export async function GET() {
-  const { authorized, user, errorResponse } = await verifyAdminSession()
+export async function GET(request: NextRequest) {
+  const { authorized, user, errorResponse } = await verifyAdminSession(request)
   if (!authorized || !user) return errorResponse!
 
-  const supabase = createServerClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from("ad_campaigns")
     .select("*")
@@ -45,7 +45,7 @@ export async function GET() {
 
 // POST: Create ad campaign
 export async function POST(request: NextRequest) {
-  const { authorized, user, errorResponse } = await verifyAdminSession()
+  const { authorized, user, errorResponse } = await verifyAdminSession(request)
   if (!authorized || !user) return errorResponse!
 
   try {
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const supabase = createServerClient()
+    const supabase = createAdminClient()
     const { data, error } = await supabase
       .from("ad_campaigns")
       .insert([parsed.data])
@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
 
 // PATCH: Update ad campaign
 export async function PATCH(request: NextRequest) {
-  const { authorized, user, errorResponse } = await verifyAdminSession()
+  const { authorized, user, errorResponse } = await verifyAdminSession(request)
   if (!authorized || !user) return errorResponse!
 
   try {
@@ -97,7 +97,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     const body = await request.json()
-    const supabase = createServerClient()
+    const supabase = createAdminClient()
 
     // Fetch existing
     const { data: existing } = await supabase
@@ -135,7 +135,7 @@ export async function PATCH(request: NextRequest) {
 
 // DELETE: Delete ad campaign
 export async function DELETE(request: NextRequest) {
-  const { authorized, user, errorResponse } = await verifyAdminSession()
+  const { authorized, user, errorResponse } = await verifyAdminSession(request)
   if (!authorized || !user) return errorResponse!
 
   try {
@@ -145,7 +145,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "Campaign ID required" }, { status: 400 })
     }
 
-    const supabase = createServerClient()
+    const supabase = createAdminClient()
     const { data: existing } = await supabase
       .from("ad_campaigns")
       .select("*")

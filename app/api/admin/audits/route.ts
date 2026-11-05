@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createServerClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { verifyAdminSession, logAdminAction } from "@/lib/auth/admin"
 
 export const dynamic = "force-dynamic"
 
-export async function GET() {
-  const { authorized, user, errorResponse } = await verifyAdminSession()
+export async function GET(request: NextRequest) {
+  const { authorized, user, errorResponse } = await verifyAdminSession(request)
   if (!authorized || !user) return errorResponse!
 
-  const supabase = createServerClient()
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from("business_audit_enquiries")
     .select("*")
@@ -22,7 +22,7 @@ export async function GET() {
 }
 
 export async function PATCH(request: NextRequest) {
-  const { authorized, user, errorResponse } = await verifyAdminSession()
+  const { authorized, user, errorResponse } = await verifyAdminSession(request)
   if (!authorized || !user) return errorResponse!
 
   try {
@@ -31,7 +31,7 @@ export async function PATCH(request: NextRequest) {
     if (!id) return NextResponse.json({ error: "ID required" }, { status: 400 })
 
     const body = await request.json()
-    const supabase = createServerClient()
+    const supabase = createAdminClient()
 
     const { data, error } = await supabase
       .from("business_audit_enquiries")

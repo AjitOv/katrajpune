@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import Link from "next/link"
+import { createClient } from "@/lib/supabase/client"
 import {
   Search,
   Plus,
@@ -54,6 +55,7 @@ function AdminBusinessesContent() {
   const filterStatusParam = searchParams.get("status") || "all"
   const filterPaymentParam = searchParams.get("payment_status") || "all"
 
+  const supabase = createClient()
   const [businesses, setBusinesses] = useState<BusinessRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
@@ -100,7 +102,12 @@ function AdminBusinessesContent() {
   async function loadBusinesses() {
     setLoading(true)
     try {
-      const res = await fetch("/api/admin/businesses")
+      const { data: sessionData } = await supabase.auth.getSession()
+      const token = sessionData?.session?.access_token
+
+      const res = await fetch("/api/admin/businesses", {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      })
       if (res.status === 401 || res.status === 403) {
         setAuthError(true)
         return
@@ -204,6 +211,9 @@ function AdminBusinessesContent() {
     setModalError(null)
 
     try {
+      const { data: sessionData } = await supabase.auth.getSession()
+      const token = sessionData?.session?.access_token
+
       const isEdit = !!editingBusiness
       const url = isEdit
         ? `/api/admin/businesses?id=${editingBusiness.id || ""}&slug=${editingBusiness.slug}`
@@ -212,7 +222,10 @@ function AdminBusinessesContent() {
 
       const res = await fetch(url, {
         method,
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify(formData),
       })
 
@@ -234,9 +247,15 @@ function AdminBusinessesContent() {
   // Quick Status Toggle (Approve / Reject)
   async function handleStatusChange(b: BusinessRecord, nextStatus: "approved" | "rejected") {
     try {
+      const { data: sessionData } = await supabase.auth.getSession()
+      const token = sessionData?.session?.access_token
+
       const res = await fetch(`/api/admin/businesses?id=${b.id || ""}&slug=${b.slug}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({ status: nextStatus }),
       })
       if (res.ok) {
@@ -255,8 +274,12 @@ function AdminBusinessesContent() {
     if (!deleteConfirm) return
     const b = deleteConfirm
     try {
+      const { data: sessionData } = await supabase.auth.getSession()
+      const token = sessionData?.session?.access_token
+
       const res = await fetch(`/api/admin/businesses?id=${b.id || ""}&slug=${b.slug}`, {
         method: "DELETE",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
       })
       if (res.ok) {
         setBusinesses((prev) => prev.filter((item) => item.slug !== b.slug))
