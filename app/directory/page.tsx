@@ -4,6 +4,8 @@ import { getLocalBusinesses } from "@/lib/data/businesses"
 import DirectoryGrid from "@/components/directory/DirectoryGrid"
 import DhanDematBanner from "@/components/ads/DhanDematBanner"
 import AmazonBestsellers from "@/components/ads/AmazonBestsellers"
+import DynamicAdBanner from "@/components/ads/DynamicAdBanner"
+import ZotozAuditBanner from "@/components/promo/ZotozAuditBanner"
 
 export const dynamic = "force-dynamic"
 
@@ -203,6 +205,16 @@ export default function DirectoryPage() {
         <DhanDematBanner variant="horizontal" />
       </div>
 
+      {/* Dynamic Ad Placement - Between Directory Banner */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+        <DynamicAdBanner placement="directory_between" />
+      </div>
+
+      {/* Zotoz AI Visibility Audit Promotion */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+        <ZotozAuditBanner variant="hero" />
+      </div>
+
       {/* Directory Grid Component */}
       <main>
         <DirectoryGrid businesses={businesses} />
@@ -225,6 +237,8 @@ export default function DirectoryPage() {
             <Link href="/directory" className="hover:text-navy">Directory Grid</Link>
             <span>•</span>
             <Link href="/deals" className="hover:text-orange font-bold text-navy">🛍️ Amazon Deals</Link>
+            <span>•</span>
+            <Link href="/free-ai-audit" className="hover:text-blue font-bold text-navy">🤖 Free AI Audit</Link>
             <span>•</span>
             <Link href="/sitemap.xml" className="hover:text-navy" target="_blank">Sitemap.xml</Link>
             <span>•</span>

@@ -4,6 +4,8 @@ import { notFound } from "next/navigation"
 import Link from "next/link"
 import { getMarkerEmoji } from "@/lib/markers"
 import DhanDematBanner from "@/components/ads/DhanDematBanner"
+import DynamicAdBanner from "@/components/ads/DynamicAdBanner"
+import ZotozAuditBanner from "@/components/promo/ZotozAuditBanner"
 
 export const dynamic = "force-dynamic"
 
@@ -400,6 +402,9 @@ export default async function BusinessProfilePage({
               </div>
             </div>
 
+            {/* Dynamic Ad Placement */}
+            <DynamicAdBanner placement="business_profile" />
+
             {/* Claim Listing Card */}
             <div className="bg-gradient-to-br from-orange/5 via-amber-50/50 to-white rounded-2xl shadow-sm border border-orange/20 p-5 space-y-3">
               <div className="flex items-center gap-2">
@@ -413,23 +418,21 @@ export default async function BusinessProfilePage({
                 Take ownership of {business.name}. Update your direct WhatsApp, phone number, store hours, and get a verified badge for a one-time fee of <strong>₹350/-</strong>.
               </p>
               <div className="space-y-2 pt-1">
-                <a
-                  href={`https://rzp.io/rzp/g0GBqkap`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full bg-orange hover:bg-orange/90 text-white font-extrabold text-xs py-2.5 px-4 rounded-xl flex items-center justify-center gap-1.5 shadow-sm transition-all text-center"
-                >
-                  <span>Pay ₹350 &amp; Claim via Razorpay</span>
-                  <span>↗</span>
-                </a>
                 <Link
                   href={`/claim?slug=${business.slug}`}
-                  className="block text-center text-[11px] font-semibold text-navy/70 hover:text-navy underline"
+                  className="w-full bg-orange hover:bg-orange/90 text-white font-extrabold text-xs py-2.5 px-4 rounded-xl flex items-center justify-center gap-1.5 shadow-sm transition-all text-center"
                 >
-                  Verify details &amp; claim options →
+                  <span>Claim Listing (₹350)</span>
+                  <span>→</span>
                 </Link>
+                <p className="text-[11px] text-gray-500 text-center">
+                  Listing updates may take up to 48 hours after payment.
+                </p>
               </div>
             </div>
+
+            {/* Zotoz AI Visibility Audit Promo */}
+            <ZotozAuditBanner variant="card" businessName={business.name} />
 
             <div className="bg-white rounded-2xl shadow-sm border border-navy/10 p-6">
               <h3 className="text-sm font-bold text-navy uppercase tracking-wider mb-4">Quick Facts</h3>

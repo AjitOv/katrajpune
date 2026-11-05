@@ -1,167 +1,331 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createServerClient } from "@/lib/supabase/server"
+import { verifyAdminSession, logAdminAction } from "@/lib/auth/admin"
+import { getLocalBusinesses } from "@/lib/data/businesses"
 import { z } from "zod"
-
-function isAdmin(user: { email?: string; user_metadata?: Record<string, any> } | null): boolean {
-  return user?.user_metadata?.role === "admin"
-}
+import fs from "fs"
+import path from "path"
 
 export const dynamic = "force-dynamic"
 
-// ---- GET all businesses for admin ----
-export async function GET(request: NextRequest) {
-  const supabase = createServerClient()
-
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
-
-  if (authError || !user || !isAdmin(user)) {
-    return new NextResponse("Unauthorized", { status: 401 })
-  }
-
-  const { searchParams } = new URL(request.url)
-  const status = searchParams.get("status") || null
-  const category = searchParams.get("category") || null
-
-  let query = supabase.from("businesses").select("*")
-
-  if (status) query = query.eq("status", status)
-  if (category) query = query.eq("category", category)
-
-  const { data, error } = await query.order("submitted_at", { ascending: false })
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-
-  return NextResponse.json(data || [])
-}
-
-// ---- PATCH: approve/reject/update_location ----
-const approveSchema = z.object({
-  action: z.enum(["approve", "reject"]),
-})
-
-const locationSchema = z.object({
-  action: z.literal("update_location"),
+// Schema for adding/editing a business
+const businessSchema = z.object({
+  name: z.string().min(2, "Name is required"),
+  slug: z.string().min(2, "Slug is required"),
+  category: z.string().min(2, "Category is required"),
+  locality: z.string().optional().nullable(),
+  address: z.string().optional().nullable(),
+  phone: z.string().optional().nullable(),
+  whatsapp: z.string().optional().nullable(),
+  email: z.string().email().optional().nullable().or(z.literal("")),
+  website: z.string().url().optional().nullable().or(z.literal("")),
+  description: z.string().optional().nullable(),
+  logo_url: z.string().url().optional().nullable().or(z.literal("")),
+  photos: z.array(z.string()).optional().default([]),
   latitude: z.number(),
   longitude: z.number(),
+  location_verified: z.boolean().default(true),
+  featured: z.boolean().default(false),
+  status: z.enum(["approved", "pending", "rejected"]).default("approved"),
+  payment_status: z.enum(["unpaid", "pending", "paid", "refunded"]).default("unpaid"),
+  rating: z.number().optional().nullable(),
+  reviews_count: z.number().int().optional().default(0),
 })
 
-export async function PATCH(request: NextRequest) {
-  const supabase = createServerClient()
-
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
-
-  if (authError || !user || !isAdmin(user)) {
-    return new NextResponse("Unauthorized", { status: 401 })
-  }
+// ---- GET: All businesses with search & filtering ----
+export async function GET(request: NextRequest) {
+  const { authorized, user, errorResponse } = await verifyAdminSession()
+  if (!authorized || !user) return errorResponse!
 
   const { searchParams } = new URL(request.url)
-  const id = searchParams.get("id")
+  const q = (searchParams.get("q") || "").toLowerCase().trim()
+  const status = searchParams.get("status")
+  const category = searchParams.get("category")
+  const locality = searchParams.get("locality")
+  const paymentStatus = searchParams.get("payment_status")
 
-  if (!id) {
-    return NextResponse.json({ error: "Business ID required" }, { status: 400 })
+  const supabase = createServerClient()
+
+  // Fetch from Supabase
+  let dbBusinesses: any[] = []
+  try {
+    let query = supabase.from("businesses").select("*").order("created_at", { ascending: false })
+    if (status && status !== "all") query = query.eq("status", status)
+    if (category && category !== "all") query = query.eq("category", category)
+    if (locality && locality !== "all") query = query.eq("locality", locality)
+    if (paymentStatus && paymentStatus !== "all") query = query.eq("payment_status", paymentStatus)
+
+    const { data } = await query
+    if (data && data.length > 0) {
+      dbBusinesses = data
+    }
+  } catch (err) {
+    console.warn("Supabase fetch fallback to local:", err)
   }
 
-  const body = await request.json()
-
-  // Fetch current record for audit log
-  const { data: current } = await supabase
-    .from("businesses")
-    .select("*")
-    .eq("id", id)
-    .single()
-
-  if (!current) {
-    return NextResponse.json({ error: "Business not found" }, { status: 404 })
+  // If Supabase returned few or none, merge with local dataset
+  let all = dbBusinesses
+  if (all.length === 0) {
+    all = getLocalBusinesses()
   }
 
-  const actorEmail = user.email || user.id
+  // Apply in-memory search and filters if needed
+  if (q) {
+    all = all.filter(
+      (b) =>
+        b.name?.toLowerCase().includes(q) ||
+        b.slug?.toLowerCase().includes(q) ||
+        b.phone?.includes(q) ||
+        b.whatsapp?.includes(q)
+    )
+  }
+  if (status && status !== "all") {
+    all = all.filter((b) => b.status === status)
+  }
+  if (category && category !== "all") {
+    all = all.filter((b) => b.category === category)
+  }
+  if (locality && locality !== "all") {
+    all = all.filter((b) => b.locality === locality)
+  }
+  if (paymentStatus && paymentStatus !== "all") {
+    all = all.filter((b) => b.payment_status === paymentStatus)
+  }
 
-  // ---- Approve / Reject ----
-  const approveResult = approveSchema.safeParse(body)
-  if (approveResult.success) {
-    const { action } = approveResult.data
-    const newStatus = action === "approve" ? "approved" : "rejected"
+  return NextResponse.json(all)
+}
 
+// ---- POST: Create new business manually ----
+export async function POST(request: NextRequest) {
+  const { authorized, user, errorResponse } = await verifyAdminSession()
+  if (!authorized || !user) return errorResponse!
+
+  try {
+    const body = await request.json()
+    const parsed = businessSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Validation failed", details: parsed.error.flatten() },
+        { status: 400 }
+      )
+    }
+
+    const businessData = {
+      ...parsed.data,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      approved_at: parsed.data.status === "approved" ? new Date().toISOString() : null,
+      approved_by: parsed.data.status === "approved" ? user.id : null,
+    }
+
+    const supabase = createServerClient()
     const { data, error } = await supabase
       .from("businesses")
-      .update({
-        status: newStatus,
-        approved_at: newStatus === "approved" ? new Date().toISOString() : null,
-        approved_by: action === "approve" ? user.id : null,
-        location_verified: action === "approve" ? current.location_verified : false,
-      })
-      .eq("id", id)
+      .insert([businessData])
       .select()
       .single()
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    // Also persist to local JSON file
+    try {
+      const jsonPath = path.resolve(process.cwd(), "data", "katraj_businesses.json")
+      if (fs.existsSync(jsonPath)) {
+        const localList = JSON.parse(fs.readFileSync(jsonPath, "utf-8"))
+        localList.push(businessData)
+        fs.writeFileSync(jsonPath, JSON.stringify(localList, null, 2), "utf-8")
+      }
+    } catch (fsErr) {
+      console.warn("Local JSON persist warning:", fsErr)
+    }
 
-    // Audit log
-    await supabase.rpc("write_audit_log", {
-      p_actor_id: user.id,
-      p_actor_email: actorEmail,
-      p_action: action,
-      p_target_type: "business",
-      p_target_id: id,
-      p_target_slug: current.slug,
-      p_previous_values: { status: current.status },
-      p_new_values: { status: newStatus },
+    await logAdminAction({
+      actorId: user.id,
+      actorEmail: user.email,
+      action: "create",
+      targetType: "business",
+      targetId: data?.id,
+      targetSlug: businessData.slug,
+      newValues: businessData,
     })
 
-    return NextResponse.json(data)
+    return NextResponse.json({ success: true, business: data || businessData })
+  } catch (err: any) {
+    return NextResponse.json({ error: err?.message || "Failed to create business" }, { status: 500 })
   }
+}
 
-  // ---- Update Location ----
-  const locationResult = locationSchema.safeParse(body)
-  if (locationResult.success) {
-    const { latitude, longitude } = locationResult.data
+// ---- PUT: Edit existing business details ----
+export async function PUT(request: NextRequest) {
+  const { authorized, user, errorResponse } = await verifyAdminSession()
+  if (!authorized || !user) return errorResponse!
 
-    const { data, error } = await supabase
-      .from("businesses")
-      .update({
-        latitude,
-        longitude,
-        location_verified: false, // requires re-approval after location change
-        status: current.status === "approved" ? "pending" : current.status, // needs re-approval if was approved
-        approved_at: null,
-        approved_by: null,
-      })
-      .eq("id", id)
-      .select()
-      .single()
+  try {
+    const { searchParams } = new URL(request.url)
+    const id = searchParams.get("id")
+    const slug = searchParams.get("slug")
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (!id && !slug) {
+      return NextResponse.json({ error: "Business ID or slug required" }, { status: 400 })
+    }
 
-    // Audit log
-    await supabase.rpc("write_audit_log", {
-      p_actor_id: user.id,
-      p_actor_email: actorEmail,
-      p_action: "update_location",
-      p_target_type: "business",
-      p_target_id: id,
-      p_target_slug: current.slug,
-      p_previous_values: {
-        latitude: current.latitude,
-        longitude: current.longitude,
-        status: current.status,
-        location_verified: current.location_verified,
-      },
-      p_new_values: {
-        latitude,
-        longitude,
-        status: data.status,
-        location_verified: data.location_verified,
-      },
+    const body = await request.json()
+    const parsed = businessSchema.partial().safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Validation failed", details: parsed.error.flatten() },
+        { status: 400 }
+      )
+    }
+
+    const updateData = {
+      ...parsed.data,
+      updated_at: new Date().toISOString(),
+    }
+
+    const supabase = createServerClient()
+    let query = supabase.from("businesses").update(updateData)
+    if (id) query = query.eq("id", id)
+    else if (slug) query = query.eq("slug", slug)
+
+    const { data, error } = await query.select().single()
+
+    // Update in local katraj_businesses.json as well
+    try {
+      const jsonPath = path.resolve(process.cwd(), "data", "katraj_businesses.json")
+      if (fs.existsSync(jsonPath)) {
+        const localList = JSON.parse(fs.readFileSync(jsonPath, "utf-8"))
+        const targetSlug = slug || data?.slug || body.slug
+        const idx = localList.findIndex((b: any) => b.slug === targetSlug || b.id === id)
+        if (idx !== -1) {
+          localList[idx] = { ...localList[idx], ...updateData }
+          fs.writeFileSync(jsonPath, JSON.stringify(localList, null, 2), "utf-8")
+        }
+      }
+    } catch (fsErr) {
+      console.warn("Local JSON update warning:", fsErr)
+    }
+
+    await logAdminAction({
+      actorId: user.id,
+      actorEmail: user.email,
+      action: "update_details",
+      targetType: "business",
+      targetId: id || data?.id,
+      targetSlug: slug || data?.slug,
+      newValues: updateData,
     })
 
-    return NextResponse.json(data)
+    return NextResponse.json({ success: true, business: data || updateData })
+  } catch (err: any) {
+    return NextResponse.json({ error: err?.message || "Failed to update business" }, { status: 500 })
   }
+}
 
-  return NextResponse.json({ error: "Invalid action" }, { status: 400 })
+// ---- PATCH: Fast status change (approve / reject) ----
+export async function PATCH(request: NextRequest) {
+  const { authorized, user, errorResponse } = await verifyAdminSession()
+  if (!authorized || !user) return errorResponse!
+
+  try {
+    const { searchParams } = new URL(request.url)
+    const id = searchParams.get("id")
+    const slug = searchParams.get("slug")
+    const body = await request.json()
+
+    if (!id && !slug) {
+      return NextResponse.json({ error: "Business ID or slug required" }, { status: 400 })
+    }
+
+    const newStatus = body.status
+    if (!["approved", "pending", "rejected"].includes(newStatus)) {
+      return NextResponse.json({ error: "Invalid status value" }, { status: 400 })
+    }
+
+    const updateFields = {
+      status: newStatus,
+      approved_at: newStatus === "approved" ? new Date().toISOString() : null,
+      approved_by: newStatus === "approved" ? user.id : null,
+      updated_at: new Date().toISOString(),
+    }
+
+    const supabase = createServerClient()
+    let query = supabase.from("businesses").update(updateFields)
+    if (id) query = query.eq("id", id)
+    else if (slug) query = query.eq("slug", slug)
+
+    const { data } = await query.select().single()
+
+    // Also update in local json
+    try {
+      const jsonPath = path.resolve(process.cwd(), "data", "katraj_businesses.json")
+      if (fs.existsSync(jsonPath)) {
+        const localList = JSON.parse(fs.readFileSync(jsonPath, "utf-8"))
+        const targetSlug = slug || data?.slug
+        const idx = localList.findIndex((b: any) => b.slug === targetSlug || b.id === id)
+        if (idx !== -1) {
+          localList[idx].status = newStatus
+          fs.writeFileSync(jsonPath, JSON.stringify(localList, null, 2), "utf-8")
+        }
+      }
+    } catch {}
+
+    await logAdminAction({
+      actorId: user.id,
+      actorEmail: user.email,
+      action: newStatus === "approved" ? "approve" : "reject",
+      targetType: "business",
+      targetId: id || data?.id,
+      targetSlug: slug || data?.slug,
+      newValues: updateFields,
+    })
+
+    return NextResponse.json({ success: true, status: newStatus })
+  } catch (err: any) {
+    return NextResponse.json({ error: err?.message || "Failed to update status" }, { status: 500 })
+  }
+}
+
+// ---- DELETE: Delete business with confirmation ----
+export async function DELETE(request: NextRequest) {
+  const { authorized, user, errorResponse } = await verifyAdminSession()
+  if (!authorized || !user) return errorResponse!
+
+  try {
+    const { searchParams } = new URL(request.url)
+    const id = searchParams.get("id")
+    const slug = searchParams.get("slug")
+
+    if (!id && !slug) {
+      return NextResponse.json({ error: "Business ID or slug required" }, { status: 400 })
+    }
+
+    const supabase = createServerClient()
+    let query = supabase.from("businesses").delete()
+    if (id) query = query.eq("id", id)
+    else if (slug) query = query.eq("slug", slug)
+
+    await query
+
+    // Also remove from local json
+    try {
+      const jsonPath = path.resolve(process.cwd(), "data", "katraj_businesses.json")
+      if (fs.existsSync(jsonPath)) {
+        const localList = JSON.parse(fs.readFileSync(jsonPath, "utf-8"))
+        const filtered = localList.filter((b: any) => b.slug !== slug && b.id !== id)
+        fs.writeFileSync(jsonPath, JSON.stringify(filtered, null, 2), "utf-8")
+      }
+    } catch {}
+
+    await logAdminAction({
+      actorId: user.id,
+      actorEmail: user.email,
+      action: "delete",
+      targetType: "business",
+      targetId: id || undefined,
+      targetSlug: slug || undefined,
+    })
+
+    return NextResponse.json({ success: true, deleted: true })
+  } catch (err: any) {
+    return NextResponse.json({ error: err?.message || "Delete failed" }, { status: 500 })
+  }
 }
