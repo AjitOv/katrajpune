@@ -38,7 +38,7 @@ export default function MapContainer({
       const res = await fetch(
         `/api/businesses/bounds?west=${bounds.getWest()}&south=${bounds.getSouth()}&east=${bounds.getEast()}&north=${bounds.getNorth()}${
           activeCategory && activeCategory !== "all" ? `&category=${activeCategory}` : ""
-        }&limit=500`
+        }&limit=2000`
       )
       const data = await res.json()
       setAllBusinesses(data || [])

@@ -1,4 +1,5 @@
 import { createServerClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { NextRequest, NextResponse } from "next/server"
 
 export interface AdminUser {
@@ -9,19 +10,39 @@ export interface AdminUser {
 
 const DEFAULT_ADMIN_EMAILS = ["ovhalajit@gmail.com"]
 
-export async function verifyAdminSession(): Promise<{
+export async function verifyAdminSession(req?: NextRequest): Promise<{
   authorized: boolean
   user: AdminUser | null
   errorResponse?: NextResponse
 }> {
   try {
-    const supabase = createServerClient()
-    const {
-      data: { user },
-      error,
-    } = await supabase.auth.getUser()
+    let user: any = null
 
-    if (error || !user) {
+    // 1. Check Bearer token in Authorization header if request provided
+    if (req) {
+      const authHeader = req.headers.get("authorization") || req.headers.get("Authorization")
+      if (authHeader && authHeader.toLowerCase().startsWith("bearer ")) {
+        const token = authHeader.substring(7).trim()
+        if (token) {
+          const supabase = createServerClient()
+          const { data } = await supabase.auth.getUser(token)
+          if (data?.user) {
+            user = data.user
+          }
+        }
+      }
+    }
+
+    // 2. Fallback to cookies
+    if (!user) {
+      const supabase = createServerClient()
+      const { data } = await supabase.auth.getUser()
+      if (data?.user) {
+        user = data.user
+      }
+    }
+
+    if (!user) {
       return {
         authorized: false,
         user: null,
@@ -90,7 +111,7 @@ export async function logAdminAction(params: {
   newValues?: Record<string, any> | null
 }) {
   try {
-    const supabase = createServerClient()
+    const supabase = createAdminClient()
     await supabase.from("audit_log").insert([
       {
         actor_id: params.actorId,

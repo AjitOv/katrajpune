@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createServerClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { verifyAdminSession, logAdminAction } from "@/lib/auth/admin"
 import { getLocalBusinesses } from "@/lib/data/businesses"
 import { z } from "zod"
@@ -13,28 +14,38 @@ const businessSchema = z.object({
   name: z.string().min(2, "Name is required"),
   slug: z.string().min(2, "Slug is required"),
   category: z.string().min(2, "Category is required"),
-  locality: z.string().optional().nullable(),
-  address: z.string().optional().nullable(),
-  phone: z.string().optional().nullable(),
-  whatsapp: z.string().optional().nullable(),
-  email: z.string().email().optional().nullable().or(z.literal("")),
-  website: z.string().url().optional().nullable().or(z.literal("")),
-  description: z.string().optional().nullable(),
-  logo_url: z.string().url().optional().nullable().or(z.literal("")),
+  locality: z.string().optional().nullable().transform((v) => v?.trim() || "Katraj"),
+  address: z.string().optional().nullable().transform((v) => v?.trim() || null),
+  phone: z.string().optional().nullable().transform((v) => v?.trim() || null),
+  whatsapp: z.string().optional().nullable().transform((v) => v?.trim() || null),
+  email: z.string().optional().nullable().transform((v) => v?.trim() || null),
+  website: z.string().optional().nullable().transform((v) => {
+    if (!v) return null
+    const trimmed = v.trim()
+    if (!trimmed) return null
+    return trimmed.startsWith("http://") || trimmed.startsWith("https://") ? trimmed : `https://${trimmed}`
+  }),
+  description: z.string().optional().nullable().transform((v) => v?.trim() || null),
+  logo_url: z.string().optional().nullable().transform((v) => {
+    if (!v) return null
+    const trimmed = v.trim()
+    if (!trimmed) return null
+    return trimmed.startsWith("http://") || trimmed.startsWith("https://") ? trimmed : `https://${trimmed}`
+  }),
   photos: z.array(z.string()).optional().default([]),
-  latitude: z.number(),
-  longitude: z.number(),
+  latitude: z.union([z.number(), z.string()]).transform((v) => Number(v) || 18.452936),
+  longitude: z.union([z.number(), z.string()]).transform((v) => Number(v) || 73.855301),
   location_verified: z.boolean().default(true),
   featured: z.boolean().default(false),
   status: z.enum(["approved", "pending", "rejected"]).default("approved"),
   payment_status: z.enum(["unpaid", "pending", "paid", "refunded"]).default("unpaid"),
-  rating: z.number().optional().nullable(),
-  reviews_count: z.number().int().optional().default(0),
+  rating: z.union([z.number(), z.string()]).optional().nullable().transform((v) => (v ? Number(v) : null)),
+  reviews_count: z.union([z.number(), z.string()]).optional().default(0).transform((v) => Number(v) || 0),
 })
 
 // ---- GET: All businesses with search & filtering ----
 export async function GET(request: NextRequest) {
-  const { authorized, user, errorResponse } = await verifyAdminSession()
+  const { authorized, user, errorResponse } = await verifyAdminSession(request)
   if (!authorized || !user) return errorResponse!
 
   const { searchParams } = new URL(request.url)
@@ -44,7 +55,7 @@ export async function GET(request: NextRequest) {
   const locality = searchParams.get("locality")
   const paymentStatus = searchParams.get("payment_status")
 
-  const supabase = createServerClient()
+  const supabase = createAdminClient()
 
   // Fetch from Supabase
   let dbBusinesses: any[] = []
@@ -97,7 +108,7 @@ export async function GET(request: NextRequest) {
 
 // ---- POST: Create new business manually ----
 export async function POST(request: NextRequest) {
-  const { authorized, user, errorResponse } = await verifyAdminSession()
+  const { authorized, user, errorResponse } = await verifyAdminSession(request)
   if (!authorized || !user) return errorResponse!
 
   try {
@@ -118,12 +129,20 @@ export async function POST(request: NextRequest) {
       approved_by: parsed.data.status === "approved" ? user.id : null,
     }
 
-    const supabase = createServerClient()
+    const supabase = createAdminClient()
     const { data, error } = await supabase
       .from("businesses")
       .insert([businessData])
       .select()
       .single()
+
+    if (error) {
+      console.error("Supabase insert error:", error)
+      return NextResponse.json(
+        { error: `Database insert failed: ${error.message}` },
+        { status: 400 }
+      )
+    }
 
     // Also persist to local JSON file
     try {
@@ -155,7 +174,7 @@ export async function POST(request: NextRequest) {
 
 // ---- PUT: Edit existing business details ----
 export async function PUT(request: NextRequest) {
-  const { authorized, user, errorResponse } = await verifyAdminSession()
+  const { authorized, user, errorResponse } = await verifyAdminSession(request)
   if (!authorized || !user) return errorResponse!
 
   try {
@@ -181,7 +200,7 @@ export async function PUT(request: NextRequest) {
       updated_at: new Date().toISOString(),
     }
 
-    const supabase = createServerClient()
+    const supabase = createAdminClient()
     let query = supabase.from("businesses").update(updateData)
     if (id) query = query.eq("id", id)
     else if (slug) query = query.eq("slug", slug)
@@ -222,7 +241,7 @@ export async function PUT(request: NextRequest) {
 
 // ---- PATCH: Fast status change (approve / reject) ----
 export async function PATCH(request: NextRequest) {
-  const { authorized, user, errorResponse } = await verifyAdminSession()
+  const { authorized, user, errorResponse } = await verifyAdminSession(request)
   if (!authorized || !user) return errorResponse!
 
   try {
@@ -247,7 +266,7 @@ export async function PATCH(request: NextRequest) {
       updated_at: new Date().toISOString(),
     }
 
-    const supabase = createServerClient()
+    const supabase = createAdminClient()
     let query = supabase.from("businesses").update(updateFields)
     if (id) query = query.eq("id", id)
     else if (slug) query = query.eq("slug", slug)
@@ -286,7 +305,7 @@ export async function PATCH(request: NextRequest) {
 
 // ---- DELETE: Delete business with confirmation ----
 export async function DELETE(request: NextRequest) {
-  const { authorized, user, errorResponse } = await verifyAdminSession()
+  const { authorized, user, errorResponse } = await verifyAdminSession(request)
   if (!authorized || !user) return errorResponse!
 
   try {
@@ -298,7 +317,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "Business ID or slug required" }, { status: 400 })
     }
 
-    const supabase = createServerClient()
+    const supabase = createAdminClient()
     let query = supabase.from("businesses").delete()
     if (id) query = query.eq("id", id)
     else if (slug) query = query.eq("slug", slug)

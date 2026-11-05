@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import Link from "next/link"
+import { createClient } from "@/lib/supabase/client"
 import {
   Search,
   Plus,
@@ -54,6 +55,7 @@ function AdminBusinessesContent() {
   const filterStatusParam = searchParams.get("status") || "all"
   const filterPaymentParam = searchParams.get("payment_status") || "all"
 
+  const supabase = createClient()
   const [businesses, setBusinesses] = useState<BusinessRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
@@ -68,6 +70,8 @@ function AdminBusinessesContent() {
   const [deleteConfirm, setDeleteConfirm] = useState<BusinessRecord | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [alertMessage, setAlertMessage] = useState<string | null>(null)
+  const [modalError, setModalError] = useState<string | null>(null)
+  const [authError, setAuthError] = useState(false)
 
   // Form State
   const [formData, setFormData] = useState<BusinessRecord>({
@@ -98,8 +102,18 @@ function AdminBusinessesContent() {
   async function loadBusinesses() {
     setLoading(true)
     try {
-      const res = await fetch("/api/admin/businesses")
+      const { data: sessionData } = await supabase.auth.getSession()
+      const token = sessionData?.session?.access_token
+
+      const res = await fetch("/api/admin/businesses", {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      })
+      if (res.status === 401 || res.status === 403) {
+        setAuthError(true)
+        return
+      }
       if (res.ok) {
+        setAuthError(false)
         const data = await res.json()
         setBusinesses(Array.isArray(data) ? data : [])
       }
@@ -134,6 +148,7 @@ function AdminBusinessesContent() {
   // Open Create Modal
   function handleOpenCreate() {
     setEditingBusiness(null)
+    setModalError(null)
     setFormData({
       slug: "",
       name: "",
@@ -160,6 +175,7 @@ function AdminBusinessesContent() {
   // Open Edit Modal
   function handleOpenEdit(b: BusinessRecord) {
     setEditingBusiness(b)
+    setModalError(null)
     setFormData({
       ...b,
       email: b.email || "",
@@ -192,8 +208,12 @@ function AdminBusinessesContent() {
     e.preventDefault()
     setIsSubmitting(true)
     setAlertMessage(null)
+    setModalError(null)
 
     try {
+      const { data: sessionData } = await supabase.auth.getSession()
+      const token = sessionData?.session?.access_token
+
       const isEdit = !!editingBusiness
       const url = isEdit
         ? `/api/admin/businesses?id=${editingBusiness.id || ""}&slug=${editingBusiness.slug}`
@@ -202,18 +222,23 @@ function AdminBusinessesContent() {
 
       const res = await fetch(url, {
         method,
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify(formData),
       })
 
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error || "Save failed")
+      if (!res.ok) {
+        throw new Error(data.error || "Save failed. Please verify all inputs.")
+      }
 
-      setAlertMessage(isEdit ? `Updated "${formData.name}"` : `Added "${formData.name}"`)
+      setAlertMessage(isEdit ? `Updated "${formData.name}"` : `Added "${formData.name}" successfully!`)
       setShowModal(false)
       loadBusinesses()
     } catch (err: any) {
-      setAlertMessage(`Error: ${err?.message || "Failed to save"}`)
+      setModalError(err?.message || "Failed to save business.")
     } finally {
       setIsSubmitting(false)
     }
@@ -222,9 +247,15 @@ function AdminBusinessesContent() {
   // Quick Status Toggle (Approve / Reject)
   async function handleStatusChange(b: BusinessRecord, nextStatus: "approved" | "rejected") {
     try {
+      const { data: sessionData } = await supabase.auth.getSession()
+      const token = sessionData?.session?.access_token
+
       const res = await fetch(`/api/admin/businesses?id=${b.id || ""}&slug=${b.slug}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({ status: nextStatus }),
       })
       if (res.ok) {
@@ -243,8 +274,12 @@ function AdminBusinessesContent() {
     if (!deleteConfirm) return
     const b = deleteConfirm
     try {
+      const { data: sessionData } = await supabase.auth.getSession()
+      const token = sessionData?.session?.access_token
+
       const res = await fetch(`/api/admin/businesses?id=${b.id || ""}&slug=${b.slug}`, {
         method: "DELETE",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
       })
       if (res.ok) {
         setBusinesses((prev) => prev.filter((item) => item.slug !== b.slug))
@@ -275,6 +310,23 @@ function AdminBusinessesContent() {
           <span>Add New Business</span>
         </button>
       </div>
+
+      {authError && (
+        <div className="p-4 bg-amber-50 border border-amber-300 text-amber-900 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
+          <div>
+            <p className="font-bold text-sm">🔒 Admin Session Required</p>
+            <p className="text-xs text-amber-800">
+              You are currently viewing offline/cached data. Please sign in to your authorized administrator account to add or modify listings.
+            </p>
+          </div>
+          <Link
+            href="/admin/login"
+            className="inline-flex items-center justify-center px-4 py-2 bg-navy hover:bg-blue text-white text-xs font-bold rounded-xl transition-colors whitespace-nowrap"
+          >
+            Sign In to Admin Console →
+          </Link>
+        </div>
+      )}
 
       {alertMessage && (
         <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-semibold flex items-center justify-between">
@@ -763,6 +815,13 @@ function AdminBusinessesContent() {
                   <span className="font-bold text-navy">Featured / Premium Listing</span>
                 </label>
               </div>
+
+              {modalError && (
+                <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 font-semibold flex items-start gap-2">
+                  <span className="text-base leading-none">⚠️</span>
+                  <span>{modalError}</span>
+                </div>
+              )}
 
               <div className="flex items-center justify-end gap-2 pt-3 border-t border-navy/10">
                 <button

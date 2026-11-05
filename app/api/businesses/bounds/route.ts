@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
   const east = parseFloat(searchParams.get("east") || "180")
   const north = parseFloat(searchParams.get("north") || "90")
   const category = searchParams.get("category") || null
-  const limit = parseInt(searchParams.get("limit") || "500", 10)
+  const limit = parseInt(searchParams.get("limit") || "2000", 10)
   const offset = parseInt(searchParams.get("offset") || "0", 10)
 
   // Validate bounds

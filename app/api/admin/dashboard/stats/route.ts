@@ -1,15 +1,15 @@
-import { NextResponse } from "next/server"
-import { createServerClient } from "@/lib/supabase/server"
+import { NextRequest, NextResponse } from "next/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { verifyAdminSession } from "@/lib/auth/admin"
 import { getLocalBusinesses } from "@/lib/data/businesses"
 
 export const dynamic = "force-dynamic"
 
-export async function GET() {
-  const { authorized, user, errorResponse } = await verifyAdminSession()
+export async function GET(request: NextRequest) {
+  const { authorized, user, errorResponse } = await verifyAdminSession(request)
   if (!authorized || !user) return errorResponse!
 
-  const supabase = createServerClient()
+  const supabase = createAdminClient()
 
   let totalBusinesses = 0
   let approvedListings = 0
