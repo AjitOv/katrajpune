@@ -1,0 +1,25 @@
+{
+  "name": "KatrajPune — Katraj Local Business Directory & Map",
+  "short_name": "KatrajPune",
+  "description": "1,440+ verified local businesses, restaurants, doctors, schools, and services in Katraj, Pune with WhatsApp contact, ratings, and map locations.",
+  "start_url": "/directory",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#F7F9FC",
+  "theme_color": "#FF7A00",
+  "categories": ["business", "shopping", "food", "navigation", "lifestyle"],
+  "lang": "en-IN",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
+

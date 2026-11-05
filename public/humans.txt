@@ -1,0 +1,17 @@
+/* TEAM */
+Platform: KatrajPune.com
+Focus: Hyperlocal Business Discovery, Directory & Interactive Map for Katraj, Pune
+Contact: contact@katrajpune.com
+Location: Katraj, Pune, Maharashtra 411046, India
+
+/* THANKS */
+The residents, students, and local business owners of Katraj, Bharati Vidyapeeth, and Pune.
+
+/* TECHNOLOGY COLOPHON */
+Framework: Next.js 14 App Router, React 18, TypeScript
+Design: Tailwind CSS, Lucide Icons
+Mapping: MapLibre GL, Supercluster
+Database: Supabase PostgreSQL with PostGIS
+Deployment: Vercel Edge Network
+Optimization: AEO (Answer Engine Optimization), GEO (Generative Engine Optimization), Schema.org JSON-LD
+

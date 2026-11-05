@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Something Shocking Is About to Launch — Join the Inner Circle</title>
+  <meta name="description" content="Something shocking is coming. Limited spots. Join the waitlist for early access.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <canvas id="stage" class="stage"></canvas>
+
+  <div class="wrap">
+    <div class="card" id="card">
+      <div class="shine"></div>
+
+      <!-- Mystery teaser bar -->
+      <div class="teaser" id="teaser">
+        <div class="teaser-inner">
+          <span class="glitch" id="glitch-text">???</span>
+          <span class="teaser-label" id="teaser-label">Secret unlocks when the timer hits zero</span>
+        </div>
+        <div class="reveal-progress">
+          <div class="reveal-fill" id="reveal-fill"></div>
+        </div>
+      </div>
+
+      <header class="header">
+        <span class="badge">Inner Circle Access</span>
+        <h1>Something <span class="accent">Shocking</span><br>Is About to Launch</h1>
+        <p class="lead">We're not ready to show you everything yet. But when we do — it changes everything.</p>
+      </header>
+
+      <!-- Scarcity / urgency -->
+      <div class="scarcity" id="scarcity">
+        <div class="scarcity-item">
+          <span class="scarcity-value" id="spots-left">1,000</span>
+          <span class="scarcity-label">Spots Left</span>
+        </div>
+        <div class="scarcity-divider">•</div>
+        <div class="scarcity-item">
+          <span class="scarcity-value" id="joined-count">0</span>
+          <span class="scarcity-label">Joined the Circle</span>
+        </div>
+      </div>
+
+      <div class="countdown" id="countdown">
+        <div class="unit"><span class="value" id="days">00</span><label>Days</label></div>
+        <div class="unit"><span class="value" id="hours">00</span><label>Hours</label></div>
+        <div class="unit"><span class="value" id="minutes">00</span><label>Minutes</label></div>
+        <div class="unit"><span class="value" id="seconds">00</span><label>Seconds</label></div>
+      </div>
+
+      <form class="waitlist" id="waitlist" novalidate>
+        <div class="field">
+          <input type="email" id="email" name="email" placeholder="Enter your email" required autocomplete="email">
+          <button type="submit">Join the Circle</button>
+        </div>
+        <p class="msg" id="msg" aria-live="polite"></p>
+      </form>
+
+      <div class="hype-note">
+        <p>⚠️ Once the spots are gone, the waitlist closes. No exceptions.</p>
+      </div>
+
+      <footer class="footer">
+        <p>&copy; <span id="year"></span> Something Shocking. All rights reserved.</p>
+      </footer>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

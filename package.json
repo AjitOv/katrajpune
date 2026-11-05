@@ -1,0 +1,38 @@
+{
+  "name": "katrajpune",
+  "version": "0.1.0",
+  "private": true,
+  "description": "KatrajPune — Map-first hyperlocal business discovery platform for Katraj, Pune",
+  "scripts": {
+    "prebuild": "tailwindcss -i app/globals.css -o app/tailwind.css",
+    "dev": "tailwindcss -i app/globals.css -o app/tailwind.css && next dev",
+    "build": "tailwindcss -i app/globals.css -o app/tailwind.css && next build",
+    "start": "next start",
+    "lint": "next lint",
+    "seed": "tsx scripts/seed.ts"
+  },
+  "dependencies": {
+    "@supabase/ssr": "^0.4.0",
+    "@supabase/supabase-js": "^2.45.0",
+    "@vercel/analytics": "^1.4.1",
+    "autoprefixer": "^10.4.16",
+    "clsx": "^2.1.0",
+    "lucide-react": "^0.453.0",
+    "maplibre-gl": "^3.6.0",
+    "next": "14.2.15",
+    "postcss": "^8.4.31",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "supercluster": "^9.1.0",
+    "tailwind-merge": "^2.5.0",
+    "tailwindcss": "^3.4.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.3.0",
+    "puppeteer-core": "^23.11.1",
+    "tsx": "^4.16.0",
+    "typescript": "^5.0.0"
+  }
+}
