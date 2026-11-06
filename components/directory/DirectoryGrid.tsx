@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, Fragment } from "react"
+import { useState, useMemo, useEffect, Fragment } from "react"
 import Link from "next/link"
 import { Business } from "@/types/business"
 import { BUSINESS_CATEGORIES } from "@/lib/maplibre"
@@ -8,6 +8,7 @@ import DhanDematBanner from "@/components/ads/DhanDematBanner"
 
 interface DirectoryGridProps {
   businesses: Business[]
+  initialQuery?: string
   initialCategory?: string
   initialLocality?: string | null
   onViewOnMap?: (business: Business) => void
@@ -38,15 +39,18 @@ const CATEGORY_COLORS: Record<string, string> = {
 
 export default function DirectoryGrid({
   businesses,
+  initialQuery = "",
   initialCategory = "all",
   initialLocality = null,
   onViewOnMap,
 }: DirectoryGridProps) {
-  const [searchQuery, setSearchQuery] = useState("")
+  const [searchQuery, setSearchQuery] = useState(initialQuery)
   const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory)
   const [selectedLocality, setSelectedLocality] = useState<string>(initialLocality || "all")
   const [sortBy, setSortBy] = useState<"rating" | "reviews" | "name">("rating")
   const [visibleCount, setVisibleCount] = useState<number>(24)
+
+  useEffect(() => { setSearchQuery(initialQuery); setVisibleCount(24) }, [initialQuery])
 
   // Unique localities list
   const localities = useMemo(() => {

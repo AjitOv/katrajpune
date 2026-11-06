@@ -38,7 +38,7 @@ export const metadata: Metadata = {
   },
 }
 
-export default async function DirectoryPage() {
+export default async function DirectoryPage({ searchParams }: { searchParams: { search?: string; q?: string } }) {
   const businesses = await getAllApprovedBusinesses()
 
   // AEO FAQ Schema & CollectionPage ItemList Schema
@@ -130,55 +130,6 @@ export default async function DirectoryPage() {
         dangerouslySetInnerHTML={{ __html: jsonLd(structuredData) }}
       />
 
-      {/* Top Navigation */}
-      <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-navy/10 px-4 sm:px-6 lg:px-8 py-3.5">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 group">
-            <span className="text-xl">📍</span>
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs font-black tracking-widest text-navy/60 uppercase group-hover:text-navy transition-colors">
-                katraj
-              </span>
-              <span className="w-1.5 h-1.5 rounded-full bg-orange" />
-              <span className="text-lg font-bold text-navy">pune</span>
-            </div>
-          </Link>
-
-          {/* Nav Links */}
-          <div className="flex items-center gap-2 sm:gap-3">
-            <Link
-              href="/"
-              className="flex items-center gap-1.5 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-navy text-xs font-bold rounded-xl transition-colors"
-            >
-              <span>🗺️</span>
-              <span className="hidden sm:inline">Interactive</span> Map
-            </Link>
-
-            <Link
-              href="/deals"
-              className="flex items-center gap-1.5 px-3 py-2 bg-amber-50 hover:bg-amber-100 border border-amber-200/80 text-amber-900 text-xs font-bold rounded-xl transition-colors"
-            >
-              <span>🛍️</span> Deals
-            </Link>
-
-            <Link
-              href="/claim"
-              className="hidden md:inline-flex items-center gap-1.5 px-3 py-2 border border-navy/20 hover:bg-navy/5 text-navy text-xs font-bold rounded-xl transition-colors"
-            >
-              <span>🛡️</span> Claim (₹350)
-            </Link>
-
-            <Link
-              href="/add-business"
-              className="flex items-center gap-1.5 px-3.5 py-2 bg-orange hover:bg-orange/90 text-white text-xs font-bold rounded-xl shadow-sm transition-all"
-            >
-              <span>+</span> Add Business (₹350)
-            </Link>
-          </div>
-        </div>
-      </header>
-
       {/* Hero Banner */}
       <section className="bg-gradient-to-r from-navy via-navy to-blue text-white py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto text-center space-y-3">
@@ -219,7 +170,7 @@ export default async function DirectoryPage() {
       <p className="text-center my-5"><Link className="underline" href="/browse">Browse every business profile by page →</Link></p>
       {/* Directory Grid Component */}
       <main>
-        <DirectoryGrid businesses={businesses} />
+        <DirectoryGrid businesses={businesses} initialQuery={searchParams.search || searchParams.q || ""} />
       </main>
 
       {/* Amazon Bestsellers & Deals Showcase */}

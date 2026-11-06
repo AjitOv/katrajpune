@@ -33,8 +33,9 @@ export default function LocalityFilter({ value, onChange }: LocalityFilterProps)
   }, [])
 
   return (
-    <div className="relative w-48">
+    <div className="relative w-48 map-locality-filter">
       <button
+        aria-expanded={isOpen}
         onClick={() => setIsOpen(!isOpen)}
         className="w-full px-3 py-2 rounded-lg bg-white/90 backdrop-blur border border-navy/10 text-sm text-navy flex items-center justify-between shadow-sm hover:bg-navy/5 transition-colors"
       >

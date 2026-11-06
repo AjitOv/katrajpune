@@ -3,6 +3,7 @@ import { Analytics } from "@vercel/analytics/react"
 import DhanTopBar from "@/components/ads/DhanTopBar"
 import FloatingWhatsAppButton from "@/components/support/FloatingWhatsAppButton"
 import "./tailwind.css"
+import SiteHeader from "@/components/navigation/SiteHeader"
 import DiscoveryLinks from "@/components/seo/DiscoveryLinks"
 import { jsonLd } from "@/lib/seo"
 
@@ -14,6 +15,10 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
+  icons: {
+    icon: [{ url: "/favicon.ico", sizes: "any" }, { url: "/favicon.svg", type: "image/svg+xml" }, { url: "/favicon-32.png", sizes: "32x32", type: "image/png" }],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+  },
   metadataBase: new URL("https://katrajpune.com"),
   title: {
     default: "KatrajPune — Discover 1,440+ Local Businesses in Katraj, Pune",
@@ -104,6 +109,7 @@ export default function RootLayout({
         "@id": "https://katrajpune.com/#organization",
         name: "KatrajPune",
         url: "https://katrajpune.com",
+        logo: "https://katrajpune.com/icon-512.png",
         address: {
           "@type": "PostalAddress",
           addressLocality: "Katraj",
@@ -146,10 +152,6 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
           rel="stylesheet"
         />
-        <link
-          rel="icon"
-          href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📍</text></svg>"
-        />
         <link rel="manifest" href="/manifest.json" />
         <link rel="author" href="/humans.txt" />
         <script
@@ -166,6 +168,7 @@ export default function RootLayout({
         }}
       >
         <DhanTopBar />
+        <SiteHeader />
         <div className="flex-1 flex flex-col relative w-full">
           {children}
         </div>

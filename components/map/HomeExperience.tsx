@@ -42,7 +42,11 @@ function MapPage() {
   const [allBusinesses, setAllBusinesses] = useState<Business[]>([])
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Load all 1000 businesses for the directory grid
+  useEffect(() => {
+    setViewMode(searchParams.get("view") === "grid" ? "grid" : "map")
+  }, [searchParams])
+
+  // Load businesses for the directory grid
   useEffect(() => {
     fetch("/api/businesses/all")
       .then((res) => res.json())
@@ -126,7 +130,7 @@ function MapPage() {
         const res = await fetch(`/api/businesses/search?${params}`)
         const data = await res.json()
         setSearchResults(Array.isArray(data) ? data : [])
-        setShowSearchResults(Array.isArray(data) && data.length > 0)
+        setShowSearchResults(Array.isArray(data))
       } catch (err) {
         console.error("Search failed:", err)
         setSearchResults([])
@@ -204,9 +208,9 @@ function MapPage() {
           <div className="max-w-7xl mx-auto px-4 mb-3">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
               <div>
-                <h1 className="text-2xl font-black text-navy">Katraj Business Directory</h1>
+                <h2 className="text-2xl font-black text-navy">Katraj Business Directory</h2>
                 <p className="text-xs text-gray-500">
-                  Browsing 1,000+ local businesses across Katraj, Pune with ratings, WhatsApp & photos
+                  Browsing local businesses across Katraj, Pune with ratings, WhatsApp & photos
                 </p>
               </div>
               <button
@@ -249,16 +253,6 @@ function MapPage() {
         >
           {/* Top row: Logo + View Mode Switcher + Desktop Category Chips + Add Business */}
           <div className="flex items-center justify-between gap-3">
-            {/* Logo */}
-            <div className="flex items-center gap-2 px-3.5 py-2 bg-white/95 backdrop-blur-md rounded-full border border-black/5 shadow-md flex-shrink-0">
-              <span className="text-base">📍</span>
-              <div className="flex items-center gap-1.5">
-                <span className="text-[10px] font-black tracking-widest text-navy/60 uppercase">katraj</span>
-                <span className="w-1 h-1 rounded-full bg-orange" />
-                <span className="text-sm font-bold text-navy">pune</span>
-              </div>
-            </div>
-
             {/* View Mode Switcher: Map vs Grid */}
             <div className="flex items-center bg-white/95 backdrop-blur-md rounded-full p-1 border border-black/5 shadow-md flex-shrink-0">
               <button
@@ -281,7 +275,7 @@ function MapPage() {
                 }`}
               >
                 <span>📋</span>
-                <span>Grid (1000+)</span>
+                <span>Grid</span>
               </button>
             </div>
 
@@ -305,33 +299,13 @@ function MapPage() {
               </div>
             )}
 
-            {/* Actions & Deals CTAs */}
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <a
-                href="/deals"
-                className="flex items-center gap-1 px-3 py-2 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300/70 text-xs font-bold rounded-full shadow-sm transition-colors"
-              >
-                <span>🛍️</span> Deals
-              </a>
-              <a
-                href="/claim"
-                className="hidden lg:flex items-center gap-1.5 px-3 py-2 bg-white/95 text-navy text-xs font-bold rounded-full border border-black/5 shadow-md hover:bg-navy/5 transition-colors"
-              >
-                <span>🛡️</span> Claim (₹350)
-              </a>
-              <a
-                href="/add-business"
-                className="hidden md:flex items-center gap-1.5 px-3.5 py-2 bg-orange text-white text-xs font-bold rounded-full shadow-md hover:opacity-90 transition-opacity"
-              >
-                <span>+</span> Add Business (₹350)
-              </a>
-            </div>
+
           </div>
 
           {/* Search bar & locality filter (when in map view) */}
           {viewMode === "map" && (
-            <div className="flex items-center gap-2">
-              <div className="relative flex-1 max-w-lg">
+            <div className="map-search-row">
+              <div className="relative map-search-input">
                 <div className="absolute left-3 top-1/2 -translate-y-1/2 text-navy/40">
                   🔍
                 </div>
@@ -339,7 +313,8 @@ function MapPage() {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search 1,000+ businesses in Katraj..."
+                  aria-label="Search businesses on the map"
+                  placeholder="Search businesses in Katraj..."
                   className="w-full pl-9 pr-10 py-2.5 rounded-full bg-white/95 backdrop-blur-md border border-black/5 text-navy text-sm placeholder-navy/40 focus:outline-none focus:ring-2 shadow-md transition-all"
                   style={{ "--tw-ring-color": "#10243A" } as any}
                 />
@@ -350,6 +325,7 @@ function MapPage() {
                 )}
                 {searchQuery && !isSearching && (
                   <button
+                    aria-label="Clear map search"
                     onClick={() => {
                       setSearchQuery("")
                       setShowSearchResults(false)
@@ -365,6 +341,8 @@ function MapPage() {
 
               {/* Mobile category toggle */}
               <button
+                aria-label="Filter by business category"
+                aria-expanded={showMobileCategories}
                 onClick={() => setShowMobileCategories((v) => !v)}
                 className="xl:hidden flex items-center gap-1 px-3 py-2.5 bg-white/95 backdrop-blur-md rounded-full border border-black/5 shadow-md text-sm font-medium text-navy"
               >
@@ -395,9 +373,9 @@ function MapPage() {
         </div>
 
         {/* Search results dropdown (Map Mode) */}
-        {viewMode === "map" && showSearchResults && searchResults.length > 0 && (
+        {viewMode === "map" && showSearchResults && (
           <div
-            className="absolute top-28 left-3 z-50 w-full max-w-md bg-white rounded-2xl shadow-2xl border border-black/5 overflow-hidden"
+            className="absolute top-28 left-3 z-50 map-search-results max-w-md bg-white rounded-2xl shadow-2xl border border-black/5 overflow-hidden"
             style={{ maxHeight: "60vh" }}
           >
             <div className="px-4 py-3 border-b border-navy/5 bg-gray-50 flex items-center justify-between">
@@ -412,6 +390,7 @@ function MapPage() {
               </button>
             </div>
             <div className="overflow-y-auto" style={{ maxHeight: "calc(60vh - 48px)" }}>
+              {searchResults.length === 0 && <p className="p-4 text-sm text-gray-600">No businesses found. Try another name or change the filters.</p>}
               {searchResults.map((biz) => (
                 <button
                   key={biz.id || biz.slug}

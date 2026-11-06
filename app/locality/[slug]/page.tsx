@@ -92,7 +92,7 @@ export default async function LocalityPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: jsonLd(structuredData) }}
       />
-      <header className="bg-white border-b border-navy/10 sticky top-0 z-20">
+      <header className="bg-white border-b border-navy/10">
         <div className="max-w-6xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex items-center justify-between">
           <div>
             <nav className="flex items-center gap-2 text-xs text-gray-400 mb-1">

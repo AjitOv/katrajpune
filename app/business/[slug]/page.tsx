@@ -66,7 +66,7 @@ export default async function BusinessProfilePage({
   const categoryColor = getCategoryColor(business.category)
   const openingHours = (business.opening_hours as Record<string, string> | null) || {}
   const currentDay = new Date()
-    .toLocaleDateString("en-US", { weekday: "long", timeZone: "Asia/Kolkata" })
+    .toLocaleDateString("en-US", { weekday: "short", timeZone: "Asia/Kolkata" })
     .toLowerCase() as string
   const isOpenToday = !!openingHours[currentDay] && openingHours[currentDay] !== "closed"
 
