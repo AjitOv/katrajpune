@@ -9,7 +9,10 @@
     "build": "tailwindcss -i app/globals.css -o app/tailwind.css && next build",
     "start": "next start",
     "lint": "next lint",
-    "seed": "tsx scripts/seed.ts"
+    "seed": "tsx scripts/seed.ts",
+    "outreach": "tsx scripts/whatsapp-outreach.ts",
+    "outreach:status": "tsx scripts/whatsapp-outreach.ts --status",
+    "outreach:export": "tsx scripts/whatsapp-outreach.ts --export-csv"
   },
   "dependencies": {
     "@supabase/ssr": "^0.4.0",
