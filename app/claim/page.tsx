@@ -152,7 +152,7 @@ function ClaimListingContent() {
             Claim Your Business on <span className="text-orange">KatrajPune</span>
           </h1>
           <p className="text-sm sm:text-base text-gray-300 max-w-xl mx-auto">
-            Are you the business owner or manager? Claim your verified listing for just {SITE_CONFIG.listing.feeDisplay}/- to update phone numbers, WhatsApp, photos, and receive customer leads.
+            Are you the business owner or manager? Claim your verified listing for just {SITE_CONFIG.listing.feeDisplay}/year (<span className="line-through text-gray-400">{SITE_CONFIG.listing.regularFeeDisplay}</span> — Diwali offer, less than ₹1/day for first 100 businesses) to update phone numbers, WhatsApp, photos, and receive customer leads.
           </p>
         </div>
       </section>
@@ -305,14 +305,21 @@ function ClaimListingContent() {
                 </div>
 
                 {/* Pricing Fee Card */}
-                <div className="p-4 rounded-xl bg-emerald-50/60 border border-emerald-200 space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="font-semibold text-navy">Ownership Verification &amp; Claim</span>
-                    <span className="font-bold text-navy">{SITE_CONFIG.listing.feeDisplay}</span>
+                <div className="p-4 rounded-xl bg-gradient-to-r from-amber-50 to-emerald-50 border border-emerald-300 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="font-extrabold text-navy text-sm">🪔 Diwali Special Verification Offer</span>
+                      <p className="text-[11px] text-amber-800 font-medium">Limited to First 100 Businesses • Less than ₹1 / day!</p>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-xs text-gray-400 line-through mr-1.5">{SITE_CONFIG.listing.regularFeeDisplay}</span>
+                      <span className="text-lg font-black text-emerald-700">{SITE_CONFIG.listing.feeDisplay}</span>
+                      <span className="text-[10px] text-gray-500 block">/ 1 full year</span>
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between text-xs text-emerald-800">
-                    <span>Lifetime verified badge &amp; lead access</span>
-                    <span className="font-bold">Included</span>
+                  <div className="flex items-center justify-between text-xs text-emerald-800 pt-1 border-t border-emerald-200/60">
+                    <span>Green verified trust badge, WhatsApp button &amp; top ranking</span>
+                    <span className="font-bold text-emerald-700">Included</span>
                   </div>
                 </div>
 

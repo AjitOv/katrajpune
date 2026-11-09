@@ -12,6 +12,7 @@ import {
   LogOut,
   MapPin,
   Shield,
+  MessageCircle,
 } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 
@@ -44,6 +45,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const navItems = [
     { label: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
     { label: "Listings", href: "/admin/businesses", icon: Building2 },
+    { label: "WhatsApp Outreach", href: "/admin/outreach", icon: MessageCircle },
     { label: "Advertisements", href: "/admin/ads", icon: Megaphone },
     { label: "AI Audits", href: "/admin/audits", icon: Sparkles },
     { label: "Moderation Map", href: "/admin/map", icon: MapPin },

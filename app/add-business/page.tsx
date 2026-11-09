@@ -141,16 +141,20 @@ export default function AddBusinessListingPage() {
 
           {/* Pricing Highlight Pill */}
           <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 px-6 text-center">
-              <span className="text-xs font-semibold text-gray-300 uppercase tracking-widest block">
-                One-Time Listing Fee
-              </span>
-              <div className="flex items-baseline justify-center gap-1 mt-1">
-                <span className="text-4xl font-extrabold text-white">{SITE_CONFIG.listing.feeDisplay}</span>
-                <span className="text-xs text-orange font-bold uppercase">Only / Lifetime</span>
+            <div className="bg-white/10 backdrop-blur-md border border-amber-400/40 rounded-2xl p-4 px-6 text-center relative overflow-hidden">
+              <div className="inline-block bg-gradient-to-r from-amber-400 to-orange text-navy text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full mb-1">
+                🪔 Diwali Offer • First 100 Businesses Only
               </div>
-              <span className="text-[11px] text-emerald-400 font-medium block mt-1">
-                ✓ No Monthly Fees • PostGIS Interactive Map Pin • Direct WhatsApp Leads
+              <span className="text-xs font-semibold text-gray-300 uppercase tracking-widest block">
+                Annual Listing Fee
+              </span>
+              <div className="flex items-baseline justify-center gap-2 mt-1">
+                <span className="text-base text-gray-400 line-through">{SITE_CONFIG.listing.regularFeeDisplay}</span>
+                <span className="text-4xl font-extrabold text-white">{SITE_CONFIG.listing.feeDisplay}</span>
+                <span className="text-xs text-emerald-400 font-bold uppercase">/ 1 Full Year</span>
+              </div>
+              <span className="text-[11px] text-emerald-300 font-medium block mt-1">
+                ✓ Less than ₹1 per day (₹0.95/day) • Interactive Map Pin • Direct WhatsApp Leads
               </span>
             </div>
           </div>

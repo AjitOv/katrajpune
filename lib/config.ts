@@ -22,10 +22,16 @@ export const SITE_CONFIG = {
   listing: {
     feeINR: 350,
     feeDisplay: "₹350",
-    feeType: "Lifetime",
+    regularFeeINR: 1499,
+    regularFeeDisplay: "₹1,499",
+    billingCycle: "per year",
+    dailyEquivalent: "Less than ₹1 / day",
+    offerName: "Diwali Special Offer",
+    offerTagline: "Diwali Special Offer: Just ₹350/year (Regular ₹1,499/year) — Less than ₹1 per day! Limited to first 100 businesses only.",
+    firstNBusinesses: 100,
     slaHours: 48,
     slaNotice:
-      "Business listing updates may take up to 48 hours after successful payment and submission of the required information.",
+      "Business listing updates take up to 48 hours after successful payment and verification of required details.",
     paymentUrl: process.env.NEXT_PUBLIC_RAZORPAY_PAYMENT_URL || "https://rzp.io/rzp/g0GBqkap",
   },
 
@@ -97,3 +103,57 @@ export function getContextualWhatsAppUrl(context: {
 
   return getWhatsAppUrl(msg)
 }
+
+/**
+ * Generate high-converting Diwali Special Offer WhatsApp outreach text
+ */
+export function getDiwaliOfferOutreachMessage(business: {
+  name: string
+  slug: string
+  category?: string | null
+  locality?: string | null
+}): string {
+  const categoryText = business.category ? `${business.category} services` : "services"
+  const localityText = business.locality ? business.locality : "Katraj"
+
+  return `🪔 *KATRAJPUNE.COM — DIWALI SPECIAL OFFER* 🪔
+
+Namaskar *${business.name}*,
+
+Your business is already listed on Katraj's #1 Local Directory & Map:
+👉 https://katrajpune.com/business/${business.slug}
+
+Hundreds of local residents search KatrajPune daily for ${categoryText} in ${localityText}.
+
+🌟 *SPECIAL DIWALI FESTIVAL OFFER:*
+• Regular Annual Price: ~₹1,499/year~
+• *Diwali Offer: ONLY ₹350 FOR 1 FULL YEAR!*
+👉 That is *LESS THAN ₹1 PER DAY* (Just ₹0.95/day)!
+
+🔥 *WHAT YOU GET:*
+✅ Official Green "Verified Business" Trust Badge
+✅ Direct "Chat on WhatsApp" Button for instant customer orders
+✅ Priority Top Ranking in Katraj Directory & Google Search
+✅ Direct Phone, Photos, Timings & Website link
+✅ Direct leads from students, families & local residents
+
+⏳ *OFFER ENDING SOON — STRICTLY LIMITED TO THE FIRST 100 BUSINESSES ONLY!*
+
+👉 *Claim Your Listing Now:*
+https://katrajpune.com/claim?slug=${business.slug}
+
+Need help? Reply to this message or WhatsApp us directly at +91 70208 88195.
+
+— Team KatrajPune.com
+Hyperlocal Search for Katraj, Pune 411046`
+}
+
+/**
+ * Generate direct WhatsApp Web URL
+ */
+export function getWhatsAppWebUrl(phoneNumber: string, message: string): string {
+  let cleanPhone = phoneNumber.replace(/[^0-9]/g, "")
+  if (cleanPhone.length === 10) cleanPhone = `91${cleanPhone}`
+  return `https://web.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(message)}`
+}
+
