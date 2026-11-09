@@ -12,6 +12,15 @@ function getPublicSupabase() {
   })
 }
 
+function withTimeout<T>(promise: PromiseLike<T>, ms: number = 3500): Promise<T> {
+  return Promise.race([
+    Promise.resolve(promise),
+    new Promise<T>((_, reject) =>
+      setTimeout(() => reject(new Error(`Fetch timed out after ${ms}ms`)), ms)
+    ),
+  ])
+}
+
 let cachedBusinesses: Business[] | null = null
 let lastMtime: number = 0
 
@@ -22,15 +31,31 @@ export async function getAllApprovedBusinesses(): Promise<Business[]> {
   try {
     const supabase = getPublicSupabase()
     if (!supabase) return getLocalBusinesses()
-    const rows: any[] = []
-    for (let offset = 0; ; offset += 1000) {
-      const {data, error} = await supabase.from("businesses").select("*").eq("status","approved").order("id").range(offset, offset + 999)
-      if (error) throw error
-      rows.push(...(data || []))
-      if (!data || data.length < 1000) break
+    
+    const fetchAll = async () => {
+      const rows: any[] = []
+      for (let offset = 0; ; offset += 1000) {
+        const { data, error } = await supabase
+          .from("businesses")
+          .select("*")
+          .eq("status", "approved")
+          .order("id")
+          .range(offset, offset + 999)
+        if (error) throw error
+        rows.push(...(data || []))
+        if (!data || data.length < 1000) break
+      }
+      return rows
     }
-    return rows.map((b: any) => ({...b, rating:b.rating ? Number(b.rating):null, reviews_count:Number(b.reviews_count || 0), latitude:Number(b.latitude), longitude:Number(b.longitude)}))
 
+    const rows = await withTimeout(fetchAll(), 4000)
+    return rows.map((b: any) => ({
+      ...b,
+      rating: b.rating ? Number(b.rating) : null,
+      reviews_count: Number(b.reviews_count || 0),
+      latitude: Number(b.latitude),
+      longitude: Number(b.longitude),
+    }))
   } catch (err) {
     console.warn("Supabase fetch failed, falling back to local dataset:", err)
   }
@@ -96,12 +121,14 @@ export async function getBusinessBySlug(slug: string): Promise<Business | null> 
   try {
     const supabase = getPublicSupabase()
     if (!supabase) throw new Error("No supabase client")
-    const { data, error } = await supabase
-      .from("businesses")
-      .select("*")
-      .eq("slug", slug)
-      .eq("status", "approved")
-      .single()
+    const { data, error } = await withTimeout<any>(
+      supabase
+        .from("businesses")
+        .select("*")
+        .eq("slug", slug)
+        .eq("status", "approved")
+        .single()
+    )
 
     if (!error && data) {
       return {
