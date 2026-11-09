@@ -1,10 +1,10 @@
 import fs from "fs"
 import path from "path"
-import { exec } from "child_process"
+import { execFile } from "child_process"
 import { promisify } from "util"
 import { getDiwaliOfferOutreachMessage, getWhatsAppWebUrl, SITE_CONFIG } from "../lib/config"
 
-const execAsync = promisify(exec)
+const execFileAsync = promisify(execFile)
 
 const DATA_FILE = path.join(process.cwd(), "data", "katraj_businesses.json")
 const CAMPAIGN_FILE = path.join(process.cwd(), "data", "outreach_campaign.json")
@@ -125,7 +125,7 @@ async function run() {
     if (isOpen) {
       // In macOS, open URL in default browser
       try {
-        await execAsync(`open "${webUrl}"`)
+        await execFileAsync("open", [webUrl])
         console.log(`   🌐 Opened in WhatsApp Web! Review and press Enter to send.`)
       } catch (err: any) {
         console.warn(`   ⚠️ Could not open browser:`, err.message)
@@ -151,3 +151,4 @@ async function run() {
 }
 
 run()
+

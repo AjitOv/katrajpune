@@ -12,7 +12,10 @@
     "seed": "tsx scripts/seed.ts",
     "outreach": "tsx scripts/whatsapp-outreach.ts",
     "outreach:status": "tsx scripts/whatsapp-outreach.ts --status",
-    "outreach:export": "tsx scripts/whatsapp-outreach.ts --export-csv"
+    "outreach:export": "tsx scripts/whatsapp-outreach.ts --export-csv",
+    "social": "tsx scripts/social-media-automation.ts",
+    "social:preview": "tsx scripts/social-media-automation.ts --dry-run",
+    "social:diwali": "tsx scripts/social-media-automation.ts --type=diwali --dry-run"
   },
   "dependencies": {
     "@supabase/ssr": "^0.4.0",
