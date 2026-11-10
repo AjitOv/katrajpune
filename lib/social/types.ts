@@ -27,3 +27,4 @@ export interface BusinessSpotlightData {
   photos: string[]
   logo_url: string | null
 }
+

@@ -2548,6 +2548,10 @@ body {
   padding-top: 1.5rem;
 }
 
+.pt-8 {
+  padding-top: 2rem;
+}
+
 .text-left {
   text-align: left;
 }
@@ -3394,6 +3398,10 @@ body {
   }
 }
 
+.last\:border-b-0:last-child {
+  border-bottom-width: 0px;
+}
+
 .last\:border-none:last-child {
   border-style: none;
 }
@@ -3428,6 +3436,10 @@ body {
 
 .hover\:border-amber-400\/80:hover {
   border-color: rgb(251 191 36 / 0.8);
+}
+
+.hover\:border-orange\/40:hover {
+  border-color: rgb(242 140 40 / 0.4);
 }
 
 .hover\:bg-\[\#20bd5a\]:hover {
@@ -3812,6 +3824,11 @@ body {
 
 .disabled\:opacity-60:disabled {
   opacity: 0.6;
+}
+
+.group:hover .group-hover\:translate-x-0\.5 {
+  --tw-translate-x: 0.125rem;
+  transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
 }
 
 .group:hover .group-hover\:translate-x-1 {

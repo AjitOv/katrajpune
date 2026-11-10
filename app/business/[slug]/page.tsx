@@ -1,5 +1,5 @@
 import { jsonLd, localitySlug } from "@/lib/seo"
-import { getBusinessBySlug } from "@/lib/data/businesses"
+import { getBusinessBySlug, getAllApprovedBusinesses } from "@/lib/data/businesses"
 import { Business } from "@/types/business"
 import { notFound } from "next/navigation"
 import Link from "next/link"
@@ -77,6 +77,36 @@ export default async function BusinessProfilePage({
     ? `https://wa.me/${business.whatsapp.replace(/[^0-9]/g, "")}`
     : null
 
+  // Fetch related/nearby businesses for internal linking (SEO crawl graph & topical authority)
+  const allBusinesses = await getAllApprovedBusinesses()
+  const relatedBusinesses = allBusinesses
+    .filter(
+      (b) =>
+        b.slug !== business.slug &&
+        (b.locality === business.locality || b.category === business.category)
+    )
+    .slice(0, 4)
+
+  // Direct Answer / AEO Q&A data
+  const faqs = [
+    {
+      question: `Where is ${business.name} located in Katraj, Pune?`,
+      answer: `${business.name} is located at ${business.address || `${business.locality || "Katraj"}, Pune, Maharashtra 411046`}. Exact GPS coordinates: Latitude ${business.latitude.toFixed(5)}, Longitude ${business.longitude.toFixed(5)}.`,
+    },
+    {
+      question: `How can I contact ${business.name} or reach out via WhatsApp?`,
+      answer: business.whatsapp || business.phone
+        ? `You can reach ${business.name} directly via WhatsApp or phone at ${business.whatsapp || business.phone}.`
+        : `${business.name} is a verified listing under ${categoryLabel} on KatrajPune.com.`,
+    },
+    {
+      question: `What is the rating and customer feedback for ${business.name}?`,
+      answer: business.rating
+        ? `${business.name} has a rating of ${business.rating} out of 5 based on ${business.reviews_count || 1} review(s) in ${business.locality || "Katraj"}, Pune.`
+        : `${business.name} is a verified ${categoryLabel} business located in Katraj, Pune.`,
+    },
+  ]
+
   const jsonLdGraph = {
     "@context": "https://schema.org",
     "@graph": [
@@ -95,7 +125,7 @@ export default async function BusinessProfilePage({
           streetAddress: business.address || "Katraj",
           addressLocality: business.locality || "Katraj",
           addressRegion: "Maharashtra",
-          postalCode: business.address?.match(/\b4\d{5}\b/)?.[0],
+          postalCode: business.address?.match(/\b4\d{5}\b/)?.[0] || "411046",
           addressCountry: "IN",
         },
         geo: {
@@ -104,7 +134,40 @@ export default async function BusinessProfilePage({
           longitude: business.longitude,
         },
         hasMap: `https://www.google.com/maps/search/?api=1&query=${business.latitude},${business.longitude}`,
-
+        priceRange: "₹₹",
+        areaServed: [
+          {
+            "@type": "AdministrativeArea",
+            name: business.locality || "Katraj",
+          },
+          {
+            "@type": "City",
+            name: "Pune",
+          },
+        ],
+        ...(business.rating
+          ? {
+              aggregateRating: {
+                "@type": "AggregateRating",
+                ratingValue: Number(business.rating),
+                reviewCount: Number(business.reviews_count || 1),
+                bestRating: "5",
+                worstRating: "1",
+              },
+            }
+          : {}),
+      },
+      {
+        "@type": "FAQPage",
+        "@id": `https://katrajpune.com/business/${business.slug}#faq`,
+        mainEntity: faqs.map((f) => ({
+          "@type": "Question",
+          name: f.question,
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: f.answer,
+          },
+        })),
       },
       {
         "@type": "BreadcrumbList",
@@ -370,6 +433,29 @@ export default async function BusinessProfilePage({
                 </div>
               </div>
             )}
+
+            {/* AEO / AI Search Direct Answer Q&A Section */}
+            <div className="bg-white rounded-2xl shadow-sm border border-navy/10 p-6 space-y-4">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">🤖</span>
+                <div>
+                  <h3 className="text-sm font-bold text-navy uppercase tracking-wider">
+                    Frequently Asked Questions (AI &amp; Local Search)
+                  </h3>
+                  <p className="text-xs text-gray-500">
+                    Direct answers for search engines and AI assistants
+                  </p>
+                </div>
+              </div>
+              <div className="space-y-3 pt-2">
+                {faqs.map((faq, idx) => (
+                  <div key={idx} className="border-b border-navy/5 pb-3 last:border-b-0 last:pb-0">
+                    <h4 className="text-sm font-bold text-navy mb-1">{faq.question}</h4>
+                    <p className="text-xs text-gray-600 leading-relaxed">{faq.answer}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
 
           {/* Right column: mini map + quick facts */}
@@ -459,6 +545,61 @@ export default async function BusinessProfilePage({
             <DhanDematBanner variant="card" />
           </div>
         </div>
+
+        {/* SEO & GEO Cross-Linking: Nearby & Similar Businesses in Katraj */}
+        {relatedBusinesses.length > 0 && (
+          <div className="mt-10 pt-8 border-t border-navy/10">
+            <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+              <div>
+                <h3 className="text-lg font-bold text-navy">
+                  More {categoryLabel} &amp; Nearby in {business.locality || "Katraj"}
+                </h3>
+                <p className="text-xs text-gray-500">
+                  Explore other verified local services and shops in Pune 411046
+                </p>
+              </div>
+              <Link
+                href={`/locality/${localitySlug(business.locality || "Katraj")}`}
+                className="text-xs font-bold text-orange hover:underline"
+              >
+                View all in {business.locality || "Katraj"} →
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {relatedBusinesses.map((rel) => (
+                <Link
+                  key={rel.slug}
+                  href={`/business/${rel.slug}`}
+                  className="group bg-white rounded-xl border border-navy/10 p-4 hover:border-orange/40 hover:shadow-md transition-all flex flex-col justify-between"
+                >
+                  <div>
+                    <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+                      {rel.category.replace(/_/g, " ")}
+                    </span>
+                    <h4 className="font-bold text-navy text-sm mt-1 group-hover:text-orange transition-colors line-clamp-1">
+                      {rel.name}
+                    </h4>
+                    <p className="text-xs text-gray-500 mt-1 line-clamp-1">
+                      📍 {rel.locality || "Katraj"}
+                    </p>
+                  </div>
+                  <div className="mt-3 pt-2 border-t border-navy/5 flex items-center justify-between text-xs">
+                    {rel.rating ? (
+                      <span className="text-amber-600 font-semibold flex items-center gap-1">
+                        ★ {rel.rating} ({rel.reviews_count || 1})
+                      </span>
+                    ) : (
+                      <span className="text-gray-400">Verified</span>
+                    )}
+                    <span className="text-orange font-bold group-hover:translate-x-0.5 transition-transform">
+                      →
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Bottom Full-Width Dhan Demat Banner */}
         <div className="mt-12">
