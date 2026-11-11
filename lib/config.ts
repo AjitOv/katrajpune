@@ -131,7 +131,7 @@ Hundreds of local residents search KatrajPune daily for ${categoryText} in ${loc
 👉 That is *LESS THAN ₹1 PER DAY* (Just ₹0.95/day)!
 
 🔥 *WHAT YOU GET:*
-✅ Official Green "Verified Business" Trust Badge
+✅ Official Gold & Navy "KatrajPune Verified Business" Trust Seal & Certificate
 ✅ Direct "Chat on WhatsApp" Button for instant customer orders
 ✅ Priority Top Ranking in Katraj Directory & Google Search
 ✅ Direct Phone, Photos, Timings & Website link

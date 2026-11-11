@@ -142,18 +142,30 @@ function ClaimListingContent() {
       </header>
 
       {/* Hero */}
-      <section className="bg-gradient-to-br from-navy via-[#162D4A] to-blue text-white py-12 px-4 sm:px-6">
-        <div className="max-w-3xl mx-auto text-center space-y-3">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-xs font-bold uppercase tracking-wider">
-            <ShieldCheck className="w-4 h-4" />
-            <span>Official Owner Verification</span>
+      <section className="bg-gradient-to-br from-navy via-[#162D4A] to-blue text-white py-12 px-4 sm:px-6 relative overflow-hidden">
+        <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
+          <div className="text-center md:text-left space-y-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-400/20 border border-amber-300/40 text-amber-200 text-xs font-bold uppercase tracking-wider">
+              <ShieldCheck className="w-4 h-4 text-amber-300" />
+              <span>Official Merchant Accreditation</span>
+            </div>
+            <h1 className="text-3xl sm:text-5xl font-black tracking-tight">
+              Claim Your Business on <span className="text-orange">KatrajPune</span>
+            </h1>
+            <p className="text-sm sm:text-base text-gray-300 max-w-xl">
+              Are you the business owner or manager? Claim your verified listing for just {SITE_CONFIG.listing.feeDisplay}/year (<span className="line-through text-gray-400">{SITE_CONFIG.listing.regularFeeDisplay}</span> — Diwali offer, less than ₹1/day for first 100 businesses) to receive your official <strong>Gold Verified Seal</strong>, direct WhatsApp leads, and priority ranking.
+            </p>
           </div>
-          <h1 className="text-3xl sm:text-5xl font-black tracking-tight">
-            Claim Your Business on <span className="text-orange">KatrajPune</span>
-          </h1>
-          <p className="text-sm sm:text-base text-gray-300 max-w-xl mx-auto">
-            Are you the business owner or manager? Claim your verified listing for just {SITE_CONFIG.listing.feeDisplay}/year (<span className="line-through text-gray-400">{SITE_CONFIG.listing.regularFeeDisplay}</span> — Diwali offer, less than ₹1/day for first 100 businesses) to update phone numbers, WhatsApp, photos, and receive customer leads.
-          </p>
+          <div className="shrink-0 flex flex-col items-center">
+            <img
+              src="/images/katraj-verified-seal.jpg"
+              alt="Official KatrajPune Verified Seal"
+              className="w-32 h-32 sm:w-36 sm:h-36 rounded-full shadow-2xl border-2 border-amber-400/60 object-cover"
+            />
+            <span className="text-[11px] font-bold text-amber-300 uppercase tracking-widest mt-2">
+              Official Trust Seal
+            </span>
+          </div>
         </div>
       </section>
 
@@ -349,11 +361,35 @@ function ClaimListingContent() {
 
           {/* Right: Benefits & Dhan Ad */}
           <div className="md:col-span-5 space-y-6">
+            {/* Dedicated Business Growth Partner */}
+            <div className="bg-gradient-to-br from-navy via-[#162D4A] to-navy text-white rounded-2xl shadow-sm border border-navy/10 p-5 flex items-center gap-4">
+              <img
+                src="/images/corporate-advisor-male.jpg"
+                alt="Katraj Business Growth Advisor"
+                className="w-16 h-16 rounded-xl object-cover shadow-md border border-white/20 shrink-0"
+              />
+              <div className="space-y-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-amber-300">
+                  Dedicated Support
+                </span>
+                <h4 className="text-xs font-bold text-white">
+                  Verified Local Commerce Partner
+                </h4>
+                <p className="text-[11px] text-gray-300 leading-relaxed">
+                  Join 1,444+ verified Katraj businesses connecting with local residents and students daily.
+                </p>
+              </div>
+            </div>
+
             <div className="bg-white rounded-2xl shadow-sm border border-navy/10 p-6 space-y-4">
               <h3 className="font-bold text-navy text-sm uppercase tracking-wider">
                 Why Claim on KatrajPune?
               </h3>
               <ul className="space-y-3 text-xs text-gray-600">
+                <li className="flex items-start gap-2.5">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                  <span>Receive the official <strong>Gold Verified Accreditation Seal</strong> and digital certificate.</span>
+                </li>
                 <li className="flex items-start gap-2.5">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                   <span>Update your direct WhatsApp and Phone number so customers call you directly.</span>

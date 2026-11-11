@@ -181,6 +181,26 @@ export default function AddBusinessListingPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Left: What You Get for ₹350 */}
           <div className="lg:col-span-5 space-y-6">
+            {/* Official Accreditation Seal Box */}
+            <div className="bg-gradient-to-br from-navy via-[#162D4A] to-navy text-white rounded-2xl p-5 shadow-sm border border-amber-400/30 flex items-center gap-4">
+              <img
+                src="/images/katraj-verified-seal.jpg"
+                alt="Official KatrajPune Verified Seal"
+                className="w-16 h-16 rounded-full shadow-lg border-2 border-amber-400/60 object-cover shrink-0"
+              />
+              <div className="space-y-0.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-amber-300">
+                  Official Merchant Accreditation
+                </span>
+                <h3 className="text-sm font-bold text-white">
+                  Gold Verification Seal Included
+                </h3>
+                <p className="text-[11px] text-gray-300">
+                  Earn the official digital trust mark for your business storefront and map profile.
+                </p>
+              </div>
+            </div>
+
             <div className="bg-white rounded-2xl shadow-sm border border-navy/10 p-6 space-y-5">
               <h2 className="text-lg font-bold text-navy flex items-center gap-2">
                 <ShieldCheck className="w-5 h-5 text-emerald-600" />

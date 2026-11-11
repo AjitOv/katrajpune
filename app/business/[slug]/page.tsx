@@ -232,8 +232,13 @@ export default async function BusinessProfilePage({
                 {categoryLabel}
               </div>
               {business.location_verified && (
-                <span className="ml-2 inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white/90 text-green-600 text-xs font-bold">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span> Verified
+                <span className="ml-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/95 backdrop-blur text-navy text-xs font-extrabold shadow-sm border border-amber-300">
+                  <img
+                    src="/images/katraj-verified-seal.jpg"
+                    alt="Verified Seal"
+                    className="w-4 h-4 rounded-full object-cover"
+                  />
+                  <span>Verified Merchant</span>
                 </span>
               )}
             </div>
@@ -489,27 +494,33 @@ export default async function BusinessProfilePage({
             <DynamicAdBanner placement="business_profile" />
 
             {/* Claim Listing Card */}
-            <div className="bg-gradient-to-br from-orange/5 via-amber-50/50 to-white rounded-2xl shadow-sm border border-orange/20 p-5 space-y-3">
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-orange"></span>
-                <span className="text-xs font-bold uppercase tracking-wider text-orange">
-                  Business Owner?
-                </span>
+            <div className="bg-gradient-to-br from-navy/[0.03] via-amber-50/40 to-white rounded-2xl shadow-sm border border-amber-200/80 p-5 space-y-3.5">
+              <div className="flex items-center gap-3">
+                <img
+                  src="/images/katraj-verified-seal.jpg"
+                  alt="KatrajPune Official Verified Seal"
+                  className="w-12 h-12 rounded-full shadow-md border border-amber-300 shrink-0 object-cover"
+                />
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-amber-800 bg-amber-100/80 px-2 py-0.5 rounded-full inline-block mb-0.5">
+                    Official Verification
+                  </span>
+                  <h4 className="text-sm font-bold text-navy">Claim &amp; Verify Listing</h4>
+                </div>
               </div>
-              <h4 className="text-sm font-bold text-navy">Claim &amp; Verify This Listing</h4>
               <p className="text-xs text-gray-600 leading-relaxed">
-                Take ownership of {business.name}. Update your direct WhatsApp, phone number, store hours, and get a verified badge for a one-time fee of <strong>₹350/-</strong>.
+                Are you the owner of <strong>{business.name}</strong>? Get official verification, direct customer WhatsApp inquiries, and earn the <strong>KatrajPune Gold Verified Seal</strong> for <strong>₹350/year</strong>.
               </p>
               <div className="space-y-2 pt-1">
                 <Link
                   href={`/claim?slug=${business.slug}`}
-                  className="w-full bg-orange hover:bg-orange/90 text-white font-extrabold text-xs py-2.5 px-4 rounded-xl flex items-center justify-center gap-1.5 shadow-sm transition-all text-center"
+                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs py-2.5 px-4 rounded-xl flex items-center justify-center gap-1.5 shadow-sm transition-all text-center"
                 >
-                  <span>Claim Listing (₹350)</span>
+                  <span>Claim &amp; Get Verified Seal (₹350)</span>
                   <span>→</span>
                 </Link>
                 <p className="text-[11px] text-gray-500 text-center">
-                  Listing updates may take up to 48 hours after payment.
+                  Verification &amp; listing activation within 24–48 hours.
                 </p>
               </div>
             </div>

@@ -132,6 +132,26 @@ export default function FreeAIAuditPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
           {/* Left: What the Audit Analyzes */}
           <div className="lg:col-span-6 space-y-6">
+            {/* Lead AI Audit Specialist Box */}
+            <div className="bg-gradient-to-br from-indigo-950 via-[#10243A] to-blue-900 text-white rounded-2xl p-5 shadow-sm border border-indigo-700/40 flex items-center gap-4">
+              <img
+                src="/images/corporate-advisor-female.jpg"
+                alt="Katraj AI Visibility Specialist"
+                className="w-16 h-16 rounded-xl object-cover shadow-md border border-white/20 shrink-0"
+              />
+              <div className="space-y-0.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-amber-300">
+                  AI Visibility Specialist
+                </span>
+                <h3 className="text-sm font-bold text-white">
+                  Conducted by Local Search Experts
+                </h3>
+                <p className="text-[11px] text-indigo-100/80">
+                  We test your Katraj business against real queries on ChatGPT, Perplexity, and Google Gemini.
+                </p>
+              </div>
+            </div>
+
             <div className="space-y-2">
               <span className="text-xs font-bold uppercase tracking-wider text-orange">Why AI Search Matters</span>
               <h2 className="text-2xl font-black text-navy">
