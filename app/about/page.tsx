@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { ShieldCheck, CheckCircle2, ArrowRight } from "lucide-react"
+import BrandLogo from "@/components/brand/BrandLogo"
 
 export const metadata: Metadata = {
   title: "About KatrajPune & Merchant Verification Standards",
@@ -13,23 +14,7 @@ export const metadata: Metadata = {
 export default function About() {
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-navy/10 bg-white/95 backdrop-blur-md px-4 sm:px-6 py-3.5">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 group">
-            <span className="text-xl">📍</span>
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs font-black tracking-widest text-navy/60 uppercase">katraj</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-orange" />
-              <span className="text-lg font-bold text-navy">pune</span>
-            </div>
-          </Link>
-          <div className="flex items-center gap-4 text-xs font-bold text-navy">
-            <Link href="/directory" className="hover:text-orange transition-colors">Directory</Link>
-            <Link href="/claim" className="hover:text-orange transition-colors">Claim Listing</Link>
-          </div>
-        </div>
-      </header>
+      
 
       <main className="max-w-3xl mx-auto px-6 py-12 space-y-8 text-navy">
         <div className="space-y-3">

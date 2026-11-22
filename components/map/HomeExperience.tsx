@@ -3,7 +3,6 @@
 import { useEffect, useState, useCallback, useRef, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import MapContainer from "@/components/map/MapContainer"
-import SearchBar from "@/components/search/SearchBar"
 import { BUSINESS_CATEGORIES } from "@/lib/maplibre"
 import BusinessCard from "@/components/map/BusinessCard"
 import { Business } from "@/types/business"
@@ -46,7 +45,6 @@ function MapPage() {
     setViewMode(searchParams.get("view") === "grid" ? "grid" : "map")
   }, [searchParams])
 
-  // Load businesses for the directory grid
   useEffect(() => {
     fetch("/api/businesses/all")
       .then((res) => res.json())
@@ -56,7 +54,6 @@ function MapPage() {
       .catch((err) => console.error("Failed to load directory businesses:", err))
   }, [])
 
-  // Handle ?focus=slug&lat=...&lng=... param (from business profile "View on Map")
   useEffect(() => {
     const lat = searchParams.get("lat")
     const lng = searchParams.get("lng")
@@ -67,7 +64,7 @@ function MapPage() {
         if (map?.flyTo) {
           map.flyTo(parseFloat(lng), parseFloat(lat), 17)
         }
-      }, 1200) // wait for map to load
+      }, 1200)
       return () => clearTimeout(timer)
     }
   }, [searchParams])
@@ -109,7 +106,6 @@ function MapPage() {
     )
   }, [])
 
-  // Debounced search for map view
   useEffect(() => {
     if (searchTimer.current) clearTimeout(searchTimer.current)
 
@@ -179,8 +175,7 @@ function MapPage() {
 
   return (
     <div
-      className="relative w-full h-[calc(100vh-42px)] overflow-hidden bg-background"
-      style={{ position: "relative", width: "100%", height: "calc(100vh - 42px)", overflow: "hidden" }}
+      className="relative w-full h-[calc(100dvh-112px)] overflow-hidden bg-background"
     >
       {/* View Mode: MAP */}
       <div
@@ -234,26 +229,15 @@ function MapPage() {
         </div>
       )}
 
-      {/* Floating Header (Shared across both modes) */}
+      {/* Floating Header */}
       <div
         className="absolute top-0 left-0 w-full p-3 z-40 pointer-events-none"
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: "100%",
-          padding: "12px",
-          zIndex: 40,
-          pointerEvents: "none",
-        }}
       >
         <div
           className="flex flex-col gap-2 pointer-events-auto max-w-7xl mx-auto"
-          style={{ pointerEvents: "auto" }}
         >
-          {/* Top row: Logo + View Mode Switcher + Desktop Category Chips + Add Business */}
+          {/* Top row: View Switcher + Desktop Category Chips */}
           <div className="flex items-center justify-between gap-3">
-            {/* View Mode Switcher: Map vs Grid */}
             <div className="flex items-center bg-white/95 backdrop-blur-md rounded-full p-1 border border-black/5 shadow-md flex-shrink-0">
               <button
                 onClick={() => setViewMode("map")}
@@ -281,7 +265,7 @@ function MapPage() {
 
             {/* Desktop category chips (in map mode) */}
             {viewMode === "map" && (
-              <div className="hidden xl:flex items-center gap-1 bg-white/95 backdrop-blur-md rounded-full px-2 py-1.5 border border-black/5 shadow-md overflow-x-auto max-w-2xl">
+              <div className="hidden xl:flex items-center gap-1 bg-white/95 backdrop-blur-md rounded-full px-2 py-1.5 border border-black/5 shadow-md overflow-x-auto max-w-xl mr-44">
                 {BUSINESS_CATEGORIES.map((cat) => (
                   <button
                     key={cat.value}
@@ -298,11 +282,9 @@ function MapPage() {
                 ))}
               </div>
             )}
-
-
           </div>
 
-          {/* Search bar & locality filter (when in map view) */}
+          {/* Search bar & locality filter */}
           {viewMode === "map" && (
             <div className="map-search-row">
               <div className="relative map-search-input">
@@ -346,7 +328,7 @@ function MapPage() {
                 onClick={() => setShowMobileCategories((v) => !v)}
                 className="xl:hidden flex items-center gap-1 px-3 py-2.5 bg-white/95 backdrop-blur-md rounded-full border border-black/5 shadow-md text-sm font-medium text-navy"
               >
-                {CATEGORY_EMOJIS[activeCategory] || "🏙️"}
+                {CATEGORY_EMOJIS[activeCategory] || "��️"}
                 <span className="text-xs">▾</span>
               </button>
             </div>
@@ -372,7 +354,7 @@ function MapPage() {
           )}
         </div>
 
-        {/* Search results dropdown (Map Mode) */}
+        {/* Search results dropdown */}
         {viewMode === "map" && showSearchResults && (
           <div
             className="absolute top-28 left-3 z-50 map-search-results max-w-md bg-white rounded-2xl shadow-2xl border border-black/5 overflow-hidden"
@@ -421,9 +403,13 @@ function MapPage() {
         )}
       </div>
 
-      {/* Map controls — bottom left (when in map view) */}
+      {/* Map controls — bottom left (dynamically elevates when BusinessCard is open) */}
       {viewMode === "map" && (
-        <div className="absolute left-3 bottom-6 z-40 flex flex-col gap-2 pointer-events-auto">
+        <div
+          className={`absolute left-3 z-40 flex flex-col gap-2 pointer-events-auto transition-all duration-300 ${
+            selectedBusiness ? "bottom-[380px] sm:bottom-[360px]" : "bottom-6"
+          }`}
+        >
           <button
             onClick={handleResetMap}
             className="w-10 h-10 rounded-xl bg-white shadow-md flex items-center justify-center text-navy hover:bg-navy hover:text-white transition-colors text-lg border border-black/5"
@@ -443,10 +429,10 @@ function MapPage() {
         </div>
       )}
 
-      {/* Active filter indicator (when in map view) */}
+      {/* Active filter indicator (floats above WhatsApp button with 0 overlap) */}
       {viewMode === "map" && (activeCategory !== "all" || activeLocality) && (
-        <div className="absolute bottom-6 right-3 z-40 flex items-center gap-2 pointer-events-auto">
-          <div className="flex items-center gap-1.5 px-3 py-2 bg-navy text-white text-xs font-semibold rounded-full shadow-md">
+        <div className="absolute bottom-24 right-4 z-40 flex items-center gap-2 pointer-events-auto">
+          <div className="flex items-center gap-1.5 px-3 py-2 bg-navy text-white text-xs font-semibold rounded-full shadow-lg border border-white/10">
             {activeCategory !== "all" && (
               <span>
                 {CATEGORY_EMOJIS[activeCategory]}{" "}

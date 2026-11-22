@@ -14,6 +14,7 @@ import {
   ExternalLink,
   MessageCircle,
 } from "lucide-react"
+import BrandLogo from "@/components/brand/BrandLogo"
 import { SITE_CONFIG, getContextualWhatsAppUrl } from "@/lib/config"
 
 export default function FreeAIAuditPage() {
@@ -66,33 +67,7 @@ export default function FreeAIAuditPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-navy/10 px-4 sm:px-6 py-3.5">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 group">
-            <span className="text-xl">📍</span>
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs font-black tracking-widest text-navy/60 uppercase">katraj</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-orange" />
-              <span className="text-lg font-bold text-navy">pune</span>
-            </div>
-          </Link>
-          <div className="flex items-center gap-3">
-            <Link
-              href="/directory"
-              className="text-xs font-bold text-navy hover:text-orange transition-colors"
-            >
-              Directory
-            </Link>
-            <Link
-              href="/add-business"
-              className="text-xs font-bold px-3 py-1.5 rounded-lg bg-navy text-white hover:bg-blue transition-colors shadow-sm"
-            >
-              + List Business ({SITE_CONFIG.listing.feeDisplay})
-            </Link>
-          </div>
-        </div>
-      </header>
+      
 
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-indigo-950 via-[#10243A] to-blue-900 text-white py-14 px-4 sm:px-6 relative overflow-hidden">

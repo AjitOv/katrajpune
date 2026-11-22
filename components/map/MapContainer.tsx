@@ -10,6 +10,7 @@ import {
   getClusterLeaves,
 } from "@/lib/cluster"
 import { getMarkerColor, getMarkerEmoji, getClusterColor } from "@/lib/markers"
+import { createThreeJsLandmarkLayer } from "@/lib/threeLayer"
 
 interface MapContainerProps {
   initialCenter: [number, number]
@@ -26,10 +27,15 @@ export default function MapContainer({
 }: MapContainerProps) {
   const [allBusinesses, setAllBusinesses] = useState<Business[]>([])
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null)
+  const [is3DMode, setIs3DMode] = useState(false)
+  const [isDroneOrbiting, setIsDroneOrbiting] = useState(false)
+
   const mapRef = useRef<any>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const markersRef = useRef<any[]>([])
   const maplibreRef = useRef<any>(null)
+  const threeLayerRef = useRef<any>(null)
+  const orbitFrameRef = useRef<number | null>(null)
 
   const fetchBusinesses = useCallback(async () => {
     if (!mapRef.current) return
@@ -47,7 +53,7 @@ export default function MapContainer({
     }
   }, [activeCategory])
 
-  // ---- Map initialization — client-side only via dynamic import ----
+  // ---- Map initialization ----
   useEffect(() => {
     if (typeof window === "undefined") return
     if (mapRef.current) return
@@ -57,13 +63,10 @@ export default function MapContainer({
 
     async function initMap() {
       try {
-        // Dynamic import avoids any SSR / webpack bundling issues
         const maplibregl = await import("maplibre-gl")
 
         if (!isMounted || !containerRef.current) return
 
-        // maplibre-gl is an ES module with NAMED exports only (no default).
-        // Prefer the namespace itself; fall back to .default only if it wraps exports.
         const mod: any = maplibregl
         const ml: any = mod?.Map ? mod : mod?.default?.Map ? mod.default : mod
         if (typeof ml?.Map !== "function") {
@@ -80,14 +83,52 @@ export default function MapContainer({
           zoom: initialZoom,
           minZoom: MAP_CONFIG.minZoom,
           maxZoom: MAP_CONFIG.maxZoom,
+          maxPitch: 85,
         })
 
         mapRef.current = map
 
-        map.addControl(new maplibreRef.current.NavigationControl())
+        map.addControl(new ml.NavigationControl())
 
         map.on("load", () => {
-          if (isMounted) fetchBusinesses()
+          if (!isMounted) return
+
+          // Add real 3D extruded buildings
+          try {
+            if (!map.getLayer("3d-buildings")) {
+              map.addLayer({
+                id: "3d-buildings",
+                source: "openmaptiles",
+                "source-layer": "building",
+                type: "fill-extrusion",
+                minzoom: 13,
+                paint: {
+                  "fill-extrusion-color": [
+                    "interpolate",
+                    ["linear"],
+                    ["get", "render_height"],
+                    0, "#e2e8f0",
+                    20, "#cbd5e1",
+                    40, "#94a3b8",
+                    80, "#475569"
+                  ],
+                  "fill-extrusion-height": [
+                    "interpolate",
+                    ["linear"],
+                    ["zoom"],
+                    13, 0,
+                    14.5, ["coalesce", ["get", "render_height"], 18]
+                  ],
+                  "fill-extrusion-base": ["coalesce", ["get", "render_min_height"], 0],
+                  "fill-extrusion-opacity": 0.88
+                }
+              })
+            }
+          } catch (e) {
+            console.warn("3D buildings layer init:", e)
+          }
+
+          fetchBusinesses()
         })
 
         let debounce: ReturnType<typeof setTimeout> | null = null
@@ -106,6 +147,7 @@ export default function MapContainer({
 
     return () => {
       isMounted = false
+      if (orbitFrameRef.current) cancelAnimationFrame(orbitFrameRef.current)
       markersRef.current.forEach((m) => m.remove())
       markersRef.current = []
       if (map) {
@@ -120,6 +162,77 @@ export default function MapContainer({
   useEffect(() => {
     if (mapRef.current) fetchBusinesses()
   }, [activeCategory, fetchBusinesses])
+
+  // ---- Explicit 3D Activation ----
+  const activate3D = useCallback(() => {
+    const map = mapRef.current
+    if (!map) return
+
+    setIs3DMode(true)
+    map.flyTo({
+      center: [73.8520, 18.4550],
+      zoom: 15.8,
+      pitch: 65,
+      bearing: 35,
+      duration: 1800,
+      essential: true,
+    })
+
+    try {
+      threeLayerRef.current?.setActive(true)
+    } catch (err) {
+      console.error("3D activate error:", err)
+    }
+  }, [])
+
+  // ---- Explicit 2D Activation ----
+  const activate2D = useCallback(() => {
+    const map = mapRef.current
+    if (!map) return
+
+    if (orbitFrameRef.current) cancelAnimationFrame(orbitFrameRef.current)
+    setIsDroneOrbiting(false)
+    setIs3DMode(false)
+
+    map.flyTo({
+      center: initialCenter,
+      zoom: 13,
+      pitch: 0,
+      bearing: 0,
+      duration: 1200,
+      essential: true,
+    })
+
+    try {
+      threeLayerRef.current?.setActive(false)
+    } catch (err) {
+      console.error("2D activate error:", err)
+    }
+  }, [initialCenter])
+
+  // ---- Drone Camera Orbit Handler ----
+  const toggleDroneOrbit = useCallback(() => {
+    const map = mapRef.current
+    if (!map) return
+
+    if (isDroneOrbiting) {
+      if (orbitFrameRef.current) cancelAnimationFrame(orbitFrameRef.current)
+      setIsDroneOrbiting(false)
+    } else {
+      setIsDroneOrbiting(true)
+      if (!is3DMode) {
+        activate3D()
+      }
+
+      const rotateStep = () => {
+        if (!mapRef.current) return
+        const currentBearing = mapRef.current.getBearing()
+        mapRef.current.setBearing((currentBearing + 0.12) % 360)
+        orbitFrameRef.current = requestAnimationFrame(rotateStep)
+      }
+      orbitFrameRef.current = requestAnimationFrame(rotateStep)
+    }
+  }, [isDroneOrbiting, is3DMode, activate3D])
 
   // ---- Render markers ----
   useEffect(() => {
@@ -191,7 +304,11 @@ export default function MapContainer({
   // Expose controls globally
   const resetToKatraj = useCallback(() => {
     if (mapRef.current) {
-      mapRef.current.flyTo({ center: initialCenter, zoom: initialZoom, duration: 1500 })
+      if (orbitFrameRef.current) cancelAnimationFrame(orbitFrameRef.current)
+      setIsDroneOrbiting(false)
+      setIs3DMode(false)
+      threeLayerRef.current?.setActive(false)
+      mapRef.current.flyTo({ center: initialCenter, zoom: initialZoom, pitch: 0, bearing: 0, duration: 1500 })
       setSelectedBusiness(null)
     }
   }, [initialCenter, initialZoom])
@@ -206,15 +323,66 @@ export default function MapContainer({
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      ;(window as any).__katrajpuneMap = { resetToKatraj, flyTo, flyToBusiness }
+      ;(window as any).__katrajpuneMap = { resetToKatraj, flyTo, flyToBusiness, activate3D, activate2D, toggleDroneOrbit }
     }
-  }, [resetToKatraj, flyTo, flyToBusiness])
+  }, [resetToKatraj, flyTo, flyToBusiness, activate3D, activate2D, toggleDroneOrbit])
 
   return (
-    <div
-      ref={containerRef}
-      style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
-    />
+    <div style={{ position: "relative", width: "100%", height: "100%" }}>
+      {/* 2D / 3D Dual Segmented Switcher */}
+      <div className="absolute top-3.5 right-14 z-20 flex items-center bg-white/95 backdrop-blur-md p-1 rounded-full border border-navy/20 shadow-xl">
+        <button
+          type="button"
+          onClick={activate2D}
+          className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+            !is3DMode
+              ? "bg-navy text-white shadow-sm"
+              : "text-navy/70 hover:text-navy hover:bg-navy/5"
+          }`}
+          title="2D Standard Map"
+        >
+          <span>🗺️ 2D</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={activate3D}
+          className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+            is3DMode
+              ? "bg-gradient-to-r from-orange to-amber-500 text-white shadow-md shadow-orange/40"
+              : "bg-orange text-white hover:bg-orange/90 shadow-sm"
+          }`}
+          title="Switch to 3D View"
+        >
+          <span className="text-sm">🏙️</span>
+          <span>3D View</span>
+          {!is3DMode && (
+            <span className="w-2 h-2 rounded-full bg-white animate-ping" />
+          )}
+        </button>
+
+        {is3DMode && (
+          <button
+            type="button"
+            onClick={toggleDroneOrbit}
+            className={`ml-1 flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+              isDroneOrbiting
+                ? "bg-emerald-600 text-white shadow-md animate-pulse"
+                : "bg-navy text-white hover:bg-navy/90"
+            }`}
+            title="Start Cinematic Drone Tour"
+          >
+            <span>🛸 {isDroneOrbiting ? "Pause Tour" : "Drone Tour"}</span>
+          </button>
+        )}
+      </div>
+
+      {/* Map Container Canvas */}
+      <div
+        ref={containerRef}
+        style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
+      />
+    </div>
   )
 }
 
@@ -236,7 +404,6 @@ function renderBusinessMarker(
   const container = document.createElement("div")
   container.style.cssText = "display:flex;flex-direction:column;align-items:center;cursor:pointer;position:relative;"
 
-  // Floating hover / active label (tooltip)
   const label = document.createElement("div")
   label.style.cssText = `
     position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);
@@ -250,7 +417,6 @@ function renderBusinessMarker(
   label.innerHTML = `<span>${biz.name}${ratingText}</span>`
   container.appendChild(label)
 
-  // Circular marker dot with category emoji
   const dot = document.createElement("div")
   const size = isSelected ? 40 : 32
   dot.style.cssText = `
@@ -265,7 +431,6 @@ function renderBusinessMarker(
   dot.innerHTML = `<span>${getMarkerEmoji(biz.category)}</span>`
   dot.title = `${biz.name}${ratingText}`
 
-  // Hover interactions
   container.onmouseenter = () => {
     dot.style.transform = "scale(1.15)"
     label.style.display = "block"

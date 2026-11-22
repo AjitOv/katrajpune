@@ -17,32 +17,10 @@ export const MAP_CONFIG = {
  */
 export function getMapStyle(): any {
   if (process.env.NEXT_PUBLIC_MAP_STYLE_URL) {
-    return process.env.NEXT_PUBLIC_MAP_STYLE_URL
+    return process.env.NEXT_PUBLIC_MAP_STYLE_URL;
   }
-  // Inline OSM raster style — zero dependencies, always works, no API key needed.
-  // For a prettier vector style, set NEXT_PUBLIC_MAP_STYLE_URL in .env.local
-  // e.g. a MapTiler or Stadia Maps style URL.
-  return {
-    version: 8,
-    sources: {
-      osm: {
-        type: "raster",
-        tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
-        tileSize: 256,
-        attribution: "© <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors",
-        maxzoom: 19,
-      },
-    },
-    layers: [
-      {
-        id: "osm-tiles",
-        type: "raster",
-        source: "osm",
-        minzoom: 0,
-        maxzoom: 19,
-      },
-    ],
-  }
+  // OpenFreeMap Liberty: Free Vector Tiles with 3D building heights
+  return "https://tiles.openfreemap.org/styles/liberty";
 }
 
 export const BUSINESS_CATEGORIES = [

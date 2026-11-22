@@ -17,6 +17,7 @@ import {
   Sparkles,
 } from "lucide-react"
 import DhanDematBanner from "@/components/ads/DhanDematBanner"
+import BrandLogo from "@/components/brand/BrandLogo"
 import { SITE_CONFIG, getContextualWhatsAppUrl } from "@/lib/config"
 
 export default function AddBusinessListingPage() {
@@ -98,33 +99,7 @@ export default function AddBusinessListingPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Top Header */}
-      <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-navy/10 px-4 sm:px-6 py-3.5">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 group">
-            <span className="text-xl">📍</span>
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs font-black tracking-widest text-navy/60 uppercase">katraj</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-orange" />
-              <span className="text-lg font-bold text-navy">pune</span>
-            </div>
-          </Link>
-          <div className="flex items-center gap-3">
-            <Link
-              href="/directory"
-              className="text-xs font-bold text-navy hover:text-orange transition-colors"
-            >
-              Browse Directory
-            </Link>
-            <Link
-              href="/claim"
-              className="text-xs font-bold px-3 py-1.5 rounded-lg border border-navy/20 text-navy hover:bg-navy/5 transition-colors"
-            >
-              Claim Existing Business
-            </Link>
-          </div>
-        </div>
-      </header>
+      
 
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-navy via-[#17324F] to-blue text-white py-12 px-4 sm:px-6">

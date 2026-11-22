@@ -1,1 +1,33 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 160"><title>KatrajPune</title><svg x="0" y="8" width="144" height="144" viewBox="0 0 512 512"><rect width="512" height="512" rx="112" fill="#10243A"/><path d="M256 430C216 370 126 287 126 204a130 130 0 0 1 260 0c0 83-90 166-130 226Z" fill="#F28C28"/><circle cx="256" cy="204" r="70" fill="#fff"/><path d="M217 204h20v39h-20zm29-32h20v71h-20zm29 17h20v54h-20z" fill="#10243A"/></svg><text x="168" y="88" font-family="Arial, sans-serif" font-size="58" font-weight="700" fill="#10243A">Katraj<tspan fill="#C7660E">Pune</tspan></text><text x="171" y="120" font-family="Arial, sans-serif" font-size="16" letter-spacing="2.5" fill="#607184">YOUR NEIGHBOURHOOD, CONNECTED</text></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 160" width="760" height="160">
+  <defs>
+    <linearGradient id="logoOrange" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF5722"/>
+      <stop offset="100%" stop-color="#E64A19"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Brand Mark Icon on the Left -->
+  <g transform="translate(10, 10)">
+    <rect width="140" height="140" rx="36" fill="#0F172A"/>
+    <!-- Pin Outline -->
+    <path d="M 70,118 C 60,104 40,81 40,56 C 40,39 53,26 70,26 C 87,26 100,39 100,56 C 100,81 80,104 70,118 Z" 
+          fill="none" stroke="#FFFFFF" stroke-width="8.5" stroke-linejoin="round"/>
+    <!-- Monogram K -->
+    <rect x="56" y="41" width="7.5" height="30" rx="2" fill="#FFFFFF"/>
+    <path d="M 63,56 L 79,41 C 80,39 83,40 83,42 L 83,45 C 83,46.5 82,48 80.5,49 L 69,59 Z" fill="#FFFFFF"/>
+    <path d="M 66,56 L 81,68 C 82.5,69 83,71.5 82,73 L 80.5,75 C 79,77 76.5,76.5 75,75.5 L 61,62.5 Z" fill="url(#logoOrange)"/>
+    <!-- Top Verified Shield -->
+    <g transform="translate(70, 26)">
+      <path d="M 0,-9 L 7.5,-5 C 7.5,3 4,9 0,12 C -4,9 -7.5,3 -7.5,-5 Z" fill="url(#logoOrange)"/>
+      <path d="M -2.5,-1.5 L -0.5,0.5 L 2.5,-3" fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+  </g>
+
+  <!-- Typography -->
+  <text x="175" y="86" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="52" font-weight="900" letter-spacing="-0.5" fill="#0F172A">
+    KATRAJ<tspan fill="#FF5722">PUNE</tspan><tspan fill="#94A3B8" font-size="30" font-weight="700">.COM</tspan>
+  </text>
+  <text x="178" y="120" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="800" letter-spacing="3.5" fill="#64748B">
+    VERIFIED BUSINESS DIRECTORY &amp; MAP
+  </text>
+</svg>

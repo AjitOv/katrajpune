@@ -22,33 +22,7 @@ export const metadata: Metadata = {
 export default function DealsPage() {
   return (
     <div className="min-h-screen bg-background">
-      {/* Top Header */}
-      <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-navy/10 px-4 sm:px-6 py-3.5">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 group">
-            <span className="text-xl">📍</span>
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs font-black tracking-widest text-navy/60 uppercase">katraj</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-orange" />
-              <span className="text-lg font-bold text-navy">pune</span>
-            </div>
-          </Link>
-          <div className="flex items-center gap-2 sm:gap-3">
-            <Link
-              href="/directory"
-              className="text-xs font-bold text-navy hover:text-orange px-3 py-1.5 rounded-lg hover:bg-navy/5 transition-colors"
-            >
-              Local Directory
-            </Link>
-            <Link
-              href="/add-business"
-              className="text-xs font-bold px-3 py-1.5 rounded-lg bg-orange text-white hover:bg-orange/90 transition-colors"
-            >
-              + List Business (₹350)
-            </Link>
-          </div>
-        </div>
-      </header>
+      
 
       {/* Hero Banner */}
       <section className="bg-gradient-to-br from-[#10243A] via-[#1A365D] to-amber-900/60 text-white py-12 px-4 sm:px-6">
