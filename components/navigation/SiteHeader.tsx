@@ -9,6 +9,7 @@ import BrandLogo from "@/components/brand/BrandLogo"
 const links = [
   { href: "/", label: "Map" },
   { href: "/directory", label: "Directory" },
+  { href: "/guides", label: "Guides" },
   { href: "/deals", label: "Deals" },
   { href: "/free-ai-audit", label: "Free AI audit" },
   { href: "/claim", label: "Claim listing" },

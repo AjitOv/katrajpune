@@ -4,7 +4,7 @@ import DhanTopBar from "@/components/ads/DhanTopBar"
 import FloatingWhatsAppButton from "@/components/support/FloatingWhatsAppButton"
 import "./tailwind.css"
 import SiteHeader from "@/components/navigation/SiteHeader"
-import DiscoveryLinks from "@/components/seo/DiscoveryLinks"
+import SiteFooter from "@/components/navigation/SiteFooter"
 import { jsonLd } from "@/lib/seo"
 
 export const viewport: Viewport = {
@@ -178,7 +178,7 @@ export default function RootLayout({
         <div className="flex-1 flex flex-col relative w-full">
           {children}
         </div>
-        <DiscoveryLinks />
+        <SiteFooter />
         <FloatingWhatsAppButton />
         <Analytics />
       </body>
